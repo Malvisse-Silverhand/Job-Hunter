@@ -1,0 +1,575 @@
+<title>Job Hunter OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: fixed navy sidebar + scrolling workspace; Kanban scrolls inside its own track; detail opens as a right drawer (full screen on phones). */
+:root{
+  --bg:#fdf9f3; --surface:#ffffff; --surface-2:#f6f0e4; --ink:#0f2540; --muted:#5f6b7d; --line:#e9e1d1;
+  --gold:#fac748; --gold-deep:#d9a521; --gold-ink:#7a5600; --gold-soft:#fdf1cf;
+  --green:#0f4c35; --green-soft:#e2f0e8; --red:#a83a2f; --red-soft:#f8e3df; --blue:#2b4f86; --blue-soft:#e4ecf7;
+  --side:#0f2540; --side-ink:#dfe7f2; --side-muted:#8ea0b8; --side-hi:#1b3758;
+  --shadow:0 1px 2px rgba(15,37,64,.06),0 6px 18px rgba(15,37,64,.06);
+  --font:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1524; --surface:#122139; --surface-2:#0f1c31; --ink:#edf1f7; --muted:#9aa7ba; --line:#22344f;
+  --gold:#fac748; --gold-deep:#c99418; --gold-ink:#f6cf68; --gold-soft:#3a3016;
+  --green:#5cc49a; --green-soft:#16362a; --red:#ef8b80; --red-soft:#3c1e1c; --blue:#8fb1e6; --blue-soft:#1b2c46;
+  --side:#07101e; --side-ink:#dfe7f2; --side-muted:#7f90a8; --side-hi:#162a45;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1524; --surface:#122139; --surface-2:#0f1c31; --ink:#edf1f7; --muted:#9aa7ba; --line:#22344f;
+  --gold:#fac748; --gold-deep:#c99418; --gold-ink:#f6cf68; --gold-soft:#3a3016;
+  --green:#5cc49a; --green-soft:#16362a; --red:#ef8b80; --red-soft:#3c1e1c; --blue:#8fb1e6; --blue-soft:#1b2c46;
+  --side:#07101e; --side-ink:#dfe7f2; --side-muted:#7f90a8; --side-hi:#162a45;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--blue)}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100%}
+/* sidebar */
+.side{background:var(--side);color:var(--side-ink);padding:18px 12px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:10px;align-items:center;padding:0 6px}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--gold);color:#0f2540;display:grid;place-items:center;font-weight:800;box-shadow:0 3px 0 #b8890f}
+.brand b{display:block;font-size:15px;line-height:1.2}
+.brand small{color:var(--side-muted);font-size:11px}
+.navlabel{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--side-muted);padding:0 8px;margin-bottom:4px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--side-ink)}
+.nav button:hover{background:var(--side-hi)}
+.nav button[aria-current="page"]{background:var(--side-hi);box-shadow:inset 3px 0 0 var(--gold)}
+.nav button:focus-visible{outline:2px solid var(--gold)}
+.nav .n{font-family:var(--mono);font-size:11px;color:var(--side-muted)}
+.sidefoot{margin-top:auto;font-size:11.5px;color:var(--side-muted);background:var(--side-hi);border-radius:12px;padding:10px 12px}
+.sidefoot b{color:var(--side-ink);display:flex;gap:6px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--side-muted);display:inline-block}
+.dot.on{background:#5cc49a}
+/* main */
+main{padding-block:22px 60px;padding-inline:28px;min-width:0}
+.head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+.head h1{font-size:26px;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.head p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{cursor:pointer;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 14px;font-weight:600;font-size:13px;box-shadow:0 3px 0 var(--line);transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn.pri{background:var(--gold);border-color:var(--gold-deep);color:#0f2540;box-shadow:0 3px 0 var(--gold-deep)}
+.btn.pri:active{box-shadow:0 1px 0 var(--gold-deep)}
+.btn.ok{background:var(--green);border-color:var(--green);color:var(--bg);box-shadow:0 3px 0 color-mix(in srgb,var(--green) 70%,#000)}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:10px}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi .v{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.1}
+.kpi .l{color:var(--muted);font-size:12px}
+.kpi.warn .v{color:var(--gold-ink)} .kpi.good .v{color:var(--green)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.panel h2{font-size:15px;margin:0 0 10px;font-weight:600}
+.panel h2 small{color:var(--muted);font-weight:400;font-size:12px;margin-left:6px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;text-align:left;width:100%}
+.item:hover{border-color:var(--gold-deep)}
+.item .t{font-weight:600;font-size:13.5px}
+.item .s{color:var(--muted);font-size:12px}
+.score{font-family:var(--mono);font-weight:700;font-size:14px;min-width:34px;text-align:right}
+.score.hi{color:var(--green)} .score.mid{color:var(--gold-ink)} .score.lo{color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.chip.due{background:var(--gold-soft);color:var(--gold-ink)}
+.chip.good{background:var(--green-soft);color:var(--green)}
+.chip.bad{background:var(--red-soft);color:var(--red)}
+.chip.info{background:var(--blue-soft);color:var(--blue)}
+.chip.ex{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;padding:18px;text-align:center;border:1.5px dashed var(--line);border-radius:12px}
+/* board */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.input,textarea,select{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13.5px;width:100%}
+.input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold-deep);box-shadow:0 0 0 3px var(--gold-soft)}
+textarea{resize:vertical;min-height:110px;line-height:1.5}
+.toolbar .input{flex:1 1 240px;width:auto}
+.toolbar select{width:auto}
+.boardwrap{overflow-x:auto;padding-bottom:10px}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:236px;gap:12px;align-items:start}
+.col{background:var(--surface-2);border-radius:var(--r);padding:10px;min-height:200px;border:1.5px solid transparent}
+.col.over{border-color:var(--gold-deep);background:var(--gold-soft)}
+.colhead{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;padding:2px 4px 10px}
+.colhead .n{font-family:var(--mono);color:var(--muted);font-size:12px}
+.sdot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin-bottom:8px;cursor:grab;box-shadow:var(--shadow);display:block;width:100%;text-align:left}
+.card:hover{border-color:var(--gold-deep)}
+.card:focus-visible{outline:2px solid var(--blue)}
+.card .top{display:flex;justify-content:space-between;gap:8px}
+.card .t{font-weight:600;font-size:13px;line-height:1.35}
+.card .c{color:var(--muted);font-size:12px;margin:2px 0 8px}
+.card .meta{display:flex;gap:6px;flex-wrap:wrap}
+.card.dragging{opacity:.4}
+/* discovery */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
+.queries{display:flex;flex-direction:column;gap:10px}
+.q{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.q b{font-size:13.5px}
+.q p{margin:2px 0 8px;color:var(--muted);font-size:12px}
+.links{display:flex;flex-wrap:wrap;gap:6px}
+.links a{font-size:12px;font-weight:600;text-decoration:none;padding:4px 10px;border-radius:999px;background:var(--blue-soft);color:var(--blue)}
+.links a:hover{text-decoration:underline}
+.hint{color:var(--muted);font-size:12px;margin:6px 0 0}
+.verdict{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(7,16,30,.45);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--bg);z-index:21;display:flex;flex-direction:column;border-left:1px solid var(--line);box-shadow:-10px 0 40px rgba(7,16,30,.2);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dhead{padding:18px 20px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.dhead h2{margin:0;font-size:19px;line-height:1.3;text-wrap:balance}
+.dhead p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.dbody{padding:16px 20px 30px;overflow-y:auto;flex:1;min-height:0}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 20px;border-bottom:1px solid var(--line)}
+.tabs button{all:unset;cursor:pointer;padding:10px 12px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--gold)}
+.tabs button:focus-visible{outline:2px solid var(--blue)}
+.x{all:unset;cursor:pointer;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:20px;color:var(--muted);flex:none}
+.x:hover{background:var(--surface-2)}
+.kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;font-size:13px;margin-bottom:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.bullets{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.out{white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13.5px;line-height:1.6;min-height:80px;overflow-wrap:anywhere}
+.out.wait{color:var(--muted)}
+.sec{margin-bottom:18px}
+.sec h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.timeline li{display:flex;gap:10px} .timeline time{font-family:var(--mono);color:var(--muted);font-size:11.5px;min-width:72px}
+.meter{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--green)}
+.propose{border:1.5px solid var(--gold-deep);background:var(--gold-soft);border-radius:12px;padding:12px 14px;margin-top:12px}
+.propose b{display:block;margin-bottom:4px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:13px;z-index:40;box-shadow:var(--shadow)}
+.banner{background:var(--blue-soft);color:var(--blue);border-radius:12px;padding:10px 14px;font-size:12.5px;margin-bottom:16px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
+.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.form .full{grid-column:1/-1}
+@media (max-width:980px){.grid2,.split{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;flex-direction:row;align-items:center;padding:10px 16px;gap:12px;z-index:10;overflow-x:auto}
+  .brand>div:last-child,.navlabel,.sidefoot{display:none}
+  .side>div{flex:none}
+  .nav{flex-direction:row}
+  .nav .n{display:none}
+  .nav button{padding:7px 10px;white-space:nowrap}
+  main{padding-inline:16px}
+  .form{grid-template-columns:minmax(0,1fr)}
+  .kv{grid-template-columns:96px minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo">J</div><div><b>Job Hunter OS</b><small id="who">Kamal Husaini</small></div></div>
+    <div>
+      <div class="navlabel">Workspace</div>
+      <nav class="nav" id="nav"></nav>
+    </div>
+    <div class="sidefoot" id="sidefoot"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="drawer-root"></div>
+<div id="toast-root"></div>
+
+<script>
+(() => {
+"use strict";
+const DAY = 864e5;
+const STATUSES = [
+  {k:"discovered",l:"Discovered",c:"#8ea0b8"},
+  {k:"shortlisted",l:"Shortlisted",c:"#7b6cd9"},
+  {k:"applied",l:"Applied",c:"#2b6fd6"},
+  {k:"acknowledged",l:"Acknowledged",c:"#3a9bb5"},
+  {k:"screening",l:"Screening",c:"#d9a521"},
+  {k:"interviewing",l:"Interviewing",c:"#e07b2a"},
+  {k:"offer",l:"Offer",c:"#1f9a63"},
+  {k:"rejected",l:"Rejected",c:"#c4473b"}
+];
+const SL = Object.fromEntries(STATUSES.map(s => [s.k, s]));
+const BOARD = STATUSES.slice(1).map(s => s.k);
+const LIVE = ["applied","acknowledged","screening","interviewing","offer"];
+const REPLIED = ["acknowledged","screening","interviewing","offer","rejected"];
+const VIEWS = [
+  {k:"today",l:"Today"},{k:"discovery",l:"Discovery"},{k:"tracker",l:"Tracker"},
+  {k:"inbox",l:"Inbox"},{k:"profile",l:"Profile & CV"}
+];
+
+// Shown only when the shared store can't be reached (preview, signed out).
+const DEMO_PROFILE = {
+  name:"Kamal Husaini",
+  headline:"Digital marketing lead: paid media + funnels + CRM systems",
+  targetRoles:"Marketing Lead, Digital Marketing Manager, Performance Marketing Lead, Growth Marketing Manager",
+  locations:"Kuala Lumpur, Selangor, Remote (Malaysia)",
+  salaryFloor:"",
+  resume:"Kamal Husaini\nDigital marketer and systems builder.\n\n- Runs Meta Ads, Google Ads and TikTok Ads end to end: setup, conversion tracking, optimisation, reporting.\n- Built multi-platform sales funnels and lead intake for Rayyan Success International.\n- Built a 7-stage Takaful Agency CRM (Next.js + Supabase).\n- Trained 15+ analysts and built an admin onboarding portal at Genpact (onboarding 30% faster).\n- Delivered 24 client websites across corporate, construction, finance and travel.",
+  avoid:""
+};
+const now0 = Date.now();
+const DEMO_JOBS = [
+  {title:"Performance Marketing Lead",company:"Contoh: Fintech Co",location:"Kuala Lumpur",source:"LinkedIn",status:"applied",score:88,verdict:"apply",appliedAt:now0-9*DAY,followUpAt:now0-2*DAY,example:true},
+  {title:"Digital Marketing Manager",company:"Contoh: Property Group",location:"Petaling Jaya",source:"Jobstreet",status:"acknowledged",score:82,verdict:"apply",appliedAt:now0-6*DAY,followUpAt:now0+1*DAY,example:true},
+  {title:"Growth Marketing Manager",company:"Contoh: E-commerce Startup",location:"Remote (MY)",source:"Company site",status:"interviewing",score:79,verdict:"apply",appliedAt:now0-14*DAY,example:true},
+  {title:"Marketing Lead (Agency)",company:"Contoh: Creative Agency",location:"Kuala Lumpur",source:"Referral",status:"shortlisted",score:91,verdict:"apply",example:true},
+  {title:"Head of Brand",company:"Contoh: FMCG",location:"Shah Alam",source:"Indeed",status:"discovered",score:54,verdict:"stretch",gaps:["Brand-led role, less performance work"],example:true}
+].map((j,i) => ({id:"demo"+i,createdAt:now0-(10-i)*DAY,reasons:[],gaps:[],activity:[],...j}));
+
+const S = {
+  view: "today", open: null, tab: "fit", live: false, ready: false,
+  profile: null, jobs: [], filter: "", minScore: 0,
+  drafts: {}, stream: {}, busy: {}, plan: null, proposal: null
+};
+let db = null, sample = null, downloads = null;
+
+// ---------- utils ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^#{1,4} (.+)$/gm,"<b>$1</b>");
+const ago = t => { if(!t) return ""; const d = Math.round((Date.now()-t)/DAY); return d<=0?"hari ni":d===1?"semalam":d+"h lepas"; };
+const fmt = t => t ? new Date(t).toLocaleDateString("en-MY",{day:"numeric",month:"short"}) : "";
+const scoreCls = n => n==null?"lo":n>=80?"hi":n>=60?"mid":"lo";
+const isDue = j => j.followUpAt && j.followUpAt <= Date.now() && ["applied","acknowledged"].includes(j.status);
+function toast(msg){ const r=$("#toast-root"); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML="",2600); }
+const errCopy = e => ({not_granted:"AI tak dibenarkan untuk page ni. Buka Permissions artifact untuk benarkan.",rate_limited:"Terlalu banyak request. Tunggu seminit dan cuba lagi.",cancelled:"Dibatalkan.",invalid_json:"AI bagi jawapan yang tak boleh dibaca. Tekan sekali lagi.",prompt_too_large:"Teks terlalu panjang. Pendekkan JD atau CV."}[e?.code] || "AI gagal: " + (e?.message || "cuba lagi."));
+
+// ---------- data layer ----------
+async function saveProfile(p){ if(db){ await db.doc("profile/main").set(p); } else { S.profile=p; render(); } }
+async function addJob(data){
+  const base = {createdAt:Date.now(),updatedAt:Date.now(),status:"discovered",reasons:[],gaps:[],activity:[{t:Date.now(),text:"Ditambah ke sistem"}],...data};
+  if(db){ const ref=db.collection("jobs").doc(); await ref.set(base); return ref.id; }
+  const id="local"+Date.now(); S.jobs.push({id,...base}); render(); return id;
+}
+async function patchJob(id,patch){
+  patch.updatedAt=Date.now();
+  if(db){ await db.doc("jobs/"+id).update(patch); }
+  else { const j=S.jobs.find(x=>x.id===id); if(j) Object.assign(j,patch); render(); }
+}
+async function removeJob(id){ if(db) await db.doc("jobs/"+id).delete(); else { S.jobs=S.jobs.filter(j=>j.id!==id); render(); } }
+function logOf(j,text){ return [...(j.activity||[]),{t:Date.now(),text}].slice(-40); }
+async function setStatus(j,st,note){
+  if(j.status===st && !note) return;
+  const p={status:st,activity:logOf(j,note||("Status → "+SL[st].l))};
+  if(st==="applied" && !j.appliedAt){ p.appliedAt=Date.now(); p.followUpAt=Date.now()+7*DAY; }
+  if(!LIVE.includes(st) || st==="interviewing" || st==="offer") p.followUpAt=null;
+  await patchJob(j.id,p);
+}
+
+// ---------- AI ----------
+function profileText(){
+  const p=S.profile||{};
+  return `CANDIDATE PROFILE\nName: ${p.name||""}\nHeadline: ${p.headline||""}\nTarget roles: ${p.targetRoles||""}\nLocations: ${p.locations||""}\nSalary floor: ${p.salaryFloor||"not stated"}\nAvoid: ${p.avoid||"none"}\n\nRESUME\n${p.resume||"(empty)"}`;
+}
+const HONEST = "Rules: never invent experience, employers, dates or metrics. If a number is missing, write a placeholder like [ISI: angka sebenar]. No em dashes. Plain human voice, no buzzwords like 'passionate about leveraging'.";
+async function ai(key, run){
+  if(!sample){ toast("AI tak available dalam view ni."); return; }
+  if(S.busy[key]) return;
+  S.busy[key]=true; render();
+  try { return await run(); }
+  catch(e){ if(e?.code!=="cancelled") toast(errCopy(e)); return undefined; }
+  finally { S.busy[key]=false; render(); }
+}
+function rankPrompt(jd){
+  return `${profileText()}\n\nJOB POSTING (pasted by the candidate)\n${jd}\n\nYou are a blunt, fair recruiter in Malaysia. Extract the job details and score the fit of THIS candidate for THIS job from 0-100 based only on evidence in the resume. Reply with only a JSON object:\n{"title":string,"company":string,"location":string,"salary":string|null,"source":string|null,"url":string|null,"score":number,"verdict":"apply"|"stretch"|"skip","reasons":[up to 4 short strings, why it fits],"gaps":[up to 4 short strings, what is missing or risky],"keywords":[up to 8 must-have keywords from the JD]}`;
+}
+async function importJD(){
+  const jd=(S.drafts.jd||"").trim();
+  if(jd.length<60){ toast("Paste JD penuh dulu (sekurang-kurangnya beberapa ayat)."); return; }
+  const r=await ai("rank",()=>sample.json(rankPrompt(jd)));
+  if(!r) return;
+  const id=await addJob({
+    title:r.title||"Untitled role",company:r.company||"",location:r.location||"",salary:r.salary||"",
+    source:r.source||S.drafts.jdSource||"Manual",url:r.url||S.drafts.jdUrl||"",
+    score:Math.max(0,Math.min(100,Number(r.score)||0)),verdict:r.verdict||"stretch",
+    reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],jd,
+    status:(Number(r.score)||0)>=75?"shortlisted":"discovered"
+  });
+  S.drafts.jd=""; S.drafts.jdUrl=""; toast(`Ranked: ${r.score}/100 · ${r.verdict}`);
+  openJob(id,"fit");
+}
+async function rerank(j){
+  if(!j.jd){ toast("Job ni tak ada JD. Paste JD dalam tab Notes dulu."); return; }
+  const r=await ai("rank:"+j.id,()=>sample.json(rankPrompt(j.jd)));
+  if(r) await patchJob(j.id,{score:Number(r.score)||0,verdict:r.verdict,reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],activity:logOf(j,"Re-rank: "+r.score)});
+}
+async function makePlan(){
+  const r=await ai("plan",()=>sample.json(`${profileText()}\n\nSuggest the 6 best job-search queries for this candidate on Malaysian job boards, ordered from strongest fit. Mix exact titles with adjacent titles they could realistically win. Reply with only a JSON array: [{"query":string (2-5 words, a job title or title+skill),"location":string (one city/region from their locations, or "Malaysia"),"why":string (one short sentence)}]`,{modelTier:"quick"}));
+  if(Array.isArray(r)){ S.plan=r; if(db) db.doc("profile/plan").set({items:r,at:Date.now()}).catch(()=>{}); render(); }
+}
+const STREAMS = {
+  resume:{field:"tailored",label:"Tailored resume",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company} (${j.location||""})\nJD:\n${j.jd||"(no JD pasted; use the title and keywords: "+(j.keywords||[]).join(", ")+")"}\n\nRewrite the resume for this job. Output plain text with these parts: SUMMARY (3 lines), KEY SKILLS (comma list mirroring the JD's language, only skills the resume supports), EXPERIENCE BULLETS (6-8 bullets, strongest-match first, reworded in the JD's terms), then WHAT I CHANGED (3 short lines) and GAPS TO ADDRESS (honest). ${HONEST}`},
+  cover:{field:"coverLetter",label:"Cover letter",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nWrite a cover letter under 280 words. Payload first: open with the specific match, then 3 short proof points tied to the JD, then one line on why this company, then a plain close. Malaysian business English. ${HONEST}`},
+  prep:{field:"prep",label:"Interview prep",prompt:j=>`${profileText()}\n\nINTERVIEW FOR: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nBuild an interview prep sheet in plain text:\n1. WHAT THEY WILL PROBE (4 bullets, from the JD)\n2. LIKELY QUESTIONS (8: mix behavioural, technical marketing, case) and for each a one-line hint of which real resume story to use (STAR)\n3. MY 60-SECOND PITCH (draft)\n4. GAPS & HOW TO ANSWER HONESTLY\n5. SMART QUESTIONS TO ASK THEM (5)\n6. RESEARCH BEFORE THE CALL (checklist; say 'unknown' instead of guessing company facts). ${HONEST}`}
+};
+let ctl=null;
+async function runStream(j,kind){
+  const cfg=STREAMS[kind], key=j.id+":"+kind;
+  ctl=new AbortController();
+  S.stream[key]="";
+  const r=await ai(key,()=>sample(cfg.prompt(j),{signal:ctl.signal,onText:({text})=>{S.stream[key]=text; const o=document.getElementById("out-"+kind); if(o){o.classList.remove("wait"); o.innerHTML=md(text);}}}));
+  const text=r?.text||S.stream[key];
+  delete S.stream[key];
+  if(text) await patchJob(j.id,{[cfg.field]:text,activity:logOf(j,cfg.label+" dijana")});
+  else render();
+}
+async function readEmail(){
+  const em=(S.drafts.email||"").trim();
+  if(em.length<20){ toast("Paste email penuh dulu."); return; }
+  const list=S.jobs.map(j=>({id:j.id,title:j.title,company:j.company,status:j.status}));
+  const r=await ai("email",()=>sample.json(`You update a job-application tracker from an email the candidate received.\nStatuses in order: ${STATUSES.map(s=>s.k).join(", ")}.\nTracked jobs (JSON): ${JSON.stringify(list)}\n\nEMAIL:\n${em}\n\nDecide which tracked job it is about (match on company name, sender domain, role title) and what status it implies: an auto-reply 'we received your application' = acknowledged; recruiter call / assessment / HR screen = screening; interview invite = interviewing; offer = offer; 'unfortunately'/'not moving forward' = rejected. Not job-related = status null. Reply with only JSON: {"jobId":string|null,"company":string|null,"role":string|null,"newStatus":string|null,"confidence":number 0-1,"summary":string (one line, Malay casual),"nextAction":string (one concrete step, Malay casual),"eventDate":string|null}`,{modelTier:"quick"}));
+  if(r){ S.proposal=r; render(); }
+}
+async function approveProposal(){
+  const p=S.proposal; if(!p||!p.newStatus) return;
+  let j=S.jobs.find(x=>x.id===p.jobId);
+  if(!j){ const id=await addJob({title:p.role||"Role from email",company:p.company||"",source:"Email",status:p.newStatus,activity:[{t:Date.now(),text:"Dicipta dari email: "+(p.summary||"")}]}); S.proposal=null; S.drafts.email=""; toast("Job baru ditambah dari email"); openJob(id,"fit"); return; }
+  await setStatus(j,p.newStatus,"Email: "+(p.summary||SL[p.newStatus]?.l));
+  if(p.nextAction) await patchJob(j.id,{notes:((j.notes||"")+"\n• "+p.nextAction).trim()});
+  S.proposal=null; S.drafts.email=""; toast(`${j.company}: ${SL[p.newStatus].l}`); render();
+}
+
+// ---------- search links (opens the real sites; nothing is scraped) ----------
+function links(q,loc){
+  const Q=encodeURIComponent(q), L=encodeURIComponent(loc||"Malaysia");
+  const slug=q.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  const locSlug=(loc&&!/malaysia|remote/i.test(loc))?"/in-"+loc.split(",")[0].trim().replace(/\s+/g,"-"):"";
+  return [
+    ["LinkedIn",`https://www.linkedin.com/jobs/search/?keywords=${Q}&location=${L}`],
+    ["Jobstreet",`https://my.jobstreet.com/${slug}-jobs${locSlug}`],
+    ["Indeed",`https://malaysia.indeed.com/jobs?q=${Q}&l=${L}`],
+    ["Google Jobs",`https://www.google.com/search?q=${encodeURIComponent(q+" jobs "+(loc||"Malaysia"))}&ibp=htl;jobs`]
+  ];
+}
+
+// ---------- rendering ----------
+function stats(){
+  const live=S.jobs.filter(j=>LIVE.includes(j.status)).length;
+  const appliedEver=S.jobs.filter(j=>j.appliedAt).length;
+  const replies=S.jobs.filter(j=>j.appliedAt&&REPLIED.includes(j.status)).length;
+  const due=S.jobs.filter(isDue).length;
+  return {live,replies,due,rate:appliedEver?Math.round(replies/appliedEver*100):0,appliedEver};
+}
+function renderNav(){
+  const st=stats();
+  const counts={today:st.due||"",discovery:S.jobs.filter(j=>j.status==="discovered").length||"",tracker:S.jobs.filter(j=>BOARD.includes(j.status)).length||"",inbox:"",profile:S.profile?.resume?"✓":"!"};
+  $("#nav").innerHTML=VIEWS.map(v=>`<button data-act="view" data-v="${v.k}" ${S.view===v.k?'aria-current="page"':""}><span>${v.l}</span><span class="n">${counts[v.k]}</span></button>`).join("");
+  $("#who").textContent=S.profile?.name||"Setup profile";
+  $("#sidefoot").innerHTML=`<b><span class="dot ${S.live?"on":""}"></span>${S.live?"Data disimpan":"Mod demo"}</b>${S.live?"Semua job & status tersimpan dalam artifact ni.":"Store tak available di view ni. Perubahan hilang bila tutup."}<br><b style="margin-top:6px"><span class="dot ${sample?"on":""}"></span>AI ${sample?"ready":"off"}</b>`;
+}
+function head(t,sub,actions=""){ return `<div class="head"><div><h1>${t}</h1><p>${sub}</p></div><div class="row">${actions}</div></div>`; }
+function jobItem(j,extra=""){
+  return `<button class="item" data-act="open" data-id="${j.id}"><span style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""}</span> ${extra}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></button>`;
+}
+function viewToday(){
+  const st=stats();
+  const due=S.jobs.filter(isDue).sort((a,b)=>a.followUpAt-b.followUpAt);
+  const fresh=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status)).sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,6);
+  const hot=S.jobs.filter(j=>["screening","interviewing","offer"].includes(j.status));
+  const d=new Date().toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long"});
+  return head("Today",`${d} · ${st.live} application aktif · ${st.due} follow-up due`,`<button class="btn" data-act="view" data-v="inbox">Update dari email</button><button class="btn pri" data-act="view" data-v="discovery">+ Cari job</button>`)+
+  `<div class="kpis">
+    <div class="kpi"><div class="v">${st.live}</div><div class="l">Application aktif</div></div>
+    <div class="kpi good"><div class="v">${st.replies}</div><div class="l">Replies</div></div>
+    <div class="kpi warn"><div class="v">${st.due}</div><div class="l">Follow-up due</div></div>
+    <div class="kpi"><div class="v">${st.rate}%</div><div class="l">Response rate (${st.appliedEver} applied)</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>Follow-up hari ni <small>7 hari lepas apply, tiada reply</small></h2>
+      <div class="list">${due.length?due.map(j=>`<div class="item" style="cursor:default"><span style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)} · apply ${fmt(j.appliedAt)}</span></span><span class="row"><button class="btn sm" data-act="open" data-id="${j.id}">Buka</button><button class="btn sm ok" data-act="followed" data-id="${j.id}">Dah follow-up</button></span></div>`).join(""):`<div class="empty">Tiada follow-up due. Bagus.</div>`}</div>
+    </div>
+    <div class="panel"><h2>Match terbaik belum apply</h2>
+      <div class="list">${fresh.length?fresh.map(j=>jobItem(j,j.example?'<span class="chip ex">contoh</span>':"")).join(""):`<div class="empty">Belum ada job. Pergi Discovery dan paste JD pertama.</div>`}</div>
+    </div>
+  </div>
+  ${hot.length?`<div class="panel" style="margin-top:16px"><h2>Tengah bergerak</h2><div class="list">${hot.map(j=>jobItem(j,`<span class="chip info">${SL[j.status].l}</span>`)).join("")}</div></div>`:""}`;
+}
+function viewDiscovery(){
+  const disc=S.jobs.filter(j=>j.status==="discovered"||j.status==="shortlisted").sort((a,b)=>(b.score||0)-(a.score||0));
+  const plan=S.plan;
+  return head("Discovery","AI cadangkan apa nak cari ikut CV kau, kau buka site sebenar, paste JD yang menarik, AI rank.")+
+  `<div class="split">
+    <div class="panel"><h2>1 · Apa patut aku cari? <small>ikut CV</small></h2>
+      <div class="row" style="margin-bottom:12px"><button class="btn pri" data-act="plan" ${S.busy.plan?"disabled":""}>${S.busy.plan?"AI tengah fikir…":plan?"Jana semula":"Jana search plan"}</button></div>
+      <div class="queries">${plan?plan.map(q=>`<div class="q"><b>${esc(q.query)}</b> <span class="chip">${esc(q.location)}</span><p>${esc(q.why)}</p><div class="links">${links(q.query,q.location).map(([n,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div></div>`).join(""):`<div class="empty">Tekan butang. AI baca CV kau dan bagi 6 search query + link terus ke LinkedIn, Jobstreet, Indeed dan Google Jobs.</div>`}</div>
+    </div>
+    <div class="panel"><h2>2 · Paste JD, AI rank</h2>
+      <label class="f" for="jd">Job description penuh
+      <textarea id="jd" data-draft="jd" rows="9" placeholder="Copy semua teks iklan kerja (title, company, requirement) dan paste sini…">${esc(S.drafts.jd||"")}</textarea></label>
+      <div class="form" style="margin-top:10px">
+        <label class="f" for="jdUrl">Link iklan (optional)<input class="input" id="jdUrl" data-draft="jdUrl" value="${esc(S.drafts.jdUrl||"")}" placeholder="https://…"></label>
+        <label class="f" for="jdSource">Source<select id="jdSource" data-draft="jdSource">${["LinkedIn","Jobstreet","Indeed","Company site","Referral","Other"].map(s=>`<option ${S.drafts.jdSource===s?"selected":""}>${s}</option>`).join("")}</select></label>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn pri" data-act="import" ${S.busy.rank?"disabled":""}>${S.busy.rank?"Tengah rank…":"Rank & simpan"}</button></div>
+      <p class="hint">Score 75+ terus masuk Shortlisted dalam Tracker.</p>
+    </div>
+  </div>
+  <div class="panel"><h2>Senarai ranked <small>${disc.length} job</small></h2>
+    <div class="list">${disc.length?disc.map(j=>`<div class="item" style="cursor:default"><span style="min-width:0;flex:1"><button data-act="open" data-id="${j.id}" style="all:unset;cursor:pointer"><span class="t">${esc(j.title)}</span></button><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""} · ${esc(j.source||"")}</span> ${j.example?'<span class="chip ex">contoh</span>':""} <span class="verdict" style="color:${j.verdict==="apply"?"var(--green)":j.verdict==="skip"?"var(--red)":"var(--gold-ink)"}">${esc(j.verdict||"")}</span></span><span class="row"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span>${j.status==="discovered"?`<button class="btn sm" data-act="status" data-id="${j.id}" data-s="shortlisted">Shortlist</button>`:`<span class="chip good">Shortlisted</span>`}</span></div>`).join(""):`<div class="empty">Belum ada. Paste JD pertama di atas.</div>`}</div>
+  </div>`;
+}
+function viewTracker(){
+  const f=S.filter.toLowerCase();
+  const jobs=S.jobs.filter(j=>(!f||(j.title+" "+j.company+" "+(j.location||"")).toLowerCase().includes(f))&&(j.score??0)>=S.minScore);
+  const st=stats();
+  return head("Tracker",`${st.live} application aktif · ${st.due} follow-up due`,`<button class="btn pri" data-act="view" data-v="discovery">+ Tambah job</button>`)+
+  `<div class="toolbar"><input class="input" id="filter" data-draft="filter" placeholder="Cari role, company atau lokasi…" value="${esc(S.filter)}" aria-label="Filter">
+  <select id="minScore" aria-label="Minimum fit"><option value="0">Semua fit</option>${[60,75,85].map(n=>`<option value="${n}" ${S.minScore==n?"selected":""}>Fit ${n}+</option>`).join("")}</select></div>
+  <div class="boardwrap"><div class="board">${BOARD.map(k=>{
+    const cs=jobs.filter(j=>j.status===k).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    return `<section class="col" data-drop="${k}" aria-label="${SL[k].l}"><div class="colhead"><span><span class="sdot" style="background:${SL[k].c}"></span>${SL[k].l}</span><span class="n">${cs.length}</span></div>
+    ${cs.map(j=>`<button class="card" draggable="true" data-act="open" data-id="${j.id}"><span class="top"><span class="t">${esc(j.title)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></span><span class="c" style="display:block">${esc(j.company)}</span><span class="meta">${isDue(j)?'<span class="chip due">follow-up due</span>':j.followUpAt&&LIVE.includes(j.status)?`<span class="chip">follow-up ${fmt(j.followUpAt)}</span>`:""}<span class="chip">${ago(j.updatedAt||j.createdAt)}</span>${j.example?'<span class="chip ex">contoh</span>':""}</span></button>`).join("")}
+    </section>`;}).join("")}</div></div>
+  <p class="hint">Drag kad antara column untuk tukar status, atau buka kad dan pilih status.</p>`;
+}
+function viewInbox(){
+  const p=S.proposal, j=p&&S.jobs.find(x=>x.id===p.jobId);
+  return head("Inbox","Paste email berkaitan kerja. AI cadang status baru, kau approve.")+
+  `<div class="banner">Prototype: paste email secara manual. Versi Vercel nanti guna Google Apps Script untuk baca Gmail sendiri setiap 15 minit.</div>
+  <div class="split"><div class="panel"><h2>Email</h2>
+    <label class="f" for="email">Subject + isi email<textarea id="email" data-draft="email" rows="11" placeholder="From: talent@company.com&#10;Subject: Interview invitation – Marketing Lead&#10;&#10;Hi Kamal, …">${esc(S.drafts.email||"")}</textarea></label>
+    <div class="row" style="margin-top:12px"><button class="btn pri" data-act="email" ${S.busy.email?"disabled":""}>${S.busy.email?"AI tengah baca…":"Baca email"}</button></div>
+  </div>
+  <div class="panel"><h2>Cadangan AI</h2>
+  ${!p?`<div class="empty">Cadangan update status akan muncul sini.</div>`:
+   !p.newStatus?`<div class="propose"><b>Bukan email berkaitan application.</b>${esc(p.summary||"")}</div><div class="row" style="margin-top:10px"><button class="btn sm" data-act="dismiss">Tutup</button></div>`:
+   `<div class="propose"><b>${esc(j?`${j.title} · ${j.company}`:`Job baru: ${p.role||"?"} · ${p.company||"?"}`)}</b>
+   ${j?`<span class="chip">${SL[j.status].l}</span> → `:""}<span class="chip info">${esc(SL[p.newStatus]?.l||p.newStatus)}</span>
+   <p style="margin:8px 0 4px">${esc(p.summary||"")}</p>
+   <p style="margin:0;font-size:12.5px"><b style="display:inline">Next:</b> ${esc(p.nextAction||"")}${p.eventDate?` · <b style="display:inline">Tarikh:</b> ${esc(p.eventDate)}`:""}</p>
+   <div class="meter" title="Confidence"><i style="width:${Math.round((p.confidence||0)*100)}%;${(p.confidence||0)<.8?"background:var(--gold-deep)":""}"></i></div>
+   <p class="hint">Confidence ${Math.round((p.confidence||0)*100)}%${(p.confidence||0)<.8?" · rendah, semak betul-betul":""}</p></div>
+   <div class="row" style="margin-top:10px"><button class="btn ok" data-act="approve">${j?"Approve update":"Tambah sebagai job baru"}</button><button class="btn" data-act="dismiss">Abaikan</button></div>`}
+  </div></div>`;
+}
+function viewProfile(){
+  const p=S.profile||{};
+  const v=k=>esc(S.drafts["p_"+k]??p[k]??"");
+  return head("Profile & CV","Semua ranking, resume dan cover letter guna maklumat ni. Isi dengan fakta sebenar je.",`<button class="btn pri" data-act="saveprofile">Simpan profile</button>`)+
+  `<div class="panel"><div class="form">
+   <label class="f" for="p_name">Nama<input class="input" id="p_name" data-draft="p_name" value="${v("name")}"></label>
+   <label class="f" for="p_headline">Headline<input class="input" id="p_headline" data-draft="p_headline" value="${v("headline")}"></label>
+   <label class="f full" for="p_targetRoles">Target roles (asingkan dengan koma)<input class="input" id="p_targetRoles" data-draft="p_targetRoles" value="${v("targetRoles")}"></label>
+   <label class="f" for="p_locations">Lokasi<input class="input" id="p_locations" data-draft="p_locations" value="${v("locations")}"></label>
+   <label class="f" for="p_salaryFloor">Gaji minimum (RM/bulan)<input class="input" id="p_salaryFloor" data-draft="p_salaryFloor" value="${v("salaryFloor")}" placeholder="cth: 8000"></label>
+   <label class="f full" for="p_avoid">Elak (industri, jenis role, syarikat)<input class="input" id="p_avoid" data-draft="p_avoid" value="${v("avoid")}" placeholder="cth: MLM, commission-only, agency junior"></label>
+   <label class="f full" for="p_resume">CV / resume penuh (paste teks)<textarea id="p_resume" data-draft="p_resume" rows="16">${v("resume")}</textarea></label>
+  </div></div>`;
+}
+function renderDrawer(){
+  const root=$("#drawer-root");
+  const j=S.jobs.find(x=>x.id===S.open);
+  if(!j){ root.innerHTML=""; return; }
+  const tabs=[["fit","Fit"],["resume","Resume"],["cover","Cover letter"],["prep","Interview prep"],["notes","Notes & log"]];
+  let body="";
+  if(S.tab==="fit"){
+    body=`<dl class="kv"><dt>Status</dt><dd><select id="d_status" aria-label="Status" style="width:auto">${STATUSES.map(s=>`<option value="${s.k}" ${j.status===s.k?"selected":""}>${s.l}</option>`).join("")}</select></dd>
+     <dt>Fit score</dt><dd><span class="score ${scoreCls(j.score)}" style="text-align:left">${j.score??"–"}/100</span> <span class="verdict">${esc(j.verdict||"")}</span><div class="meter"><i style="width:${j.score||0}%"></i></div></dd>
+     <dt>Lokasi</dt><dd>${esc(j.location||"–")}</dd><dt>Gaji</dt><dd>${esc(j.salary||"tak dinyatakan")}</dd>
+     <dt>Source</dt><dd>${esc(j.source||"–")}${j.url?` · <a href="${esc(j.url)}" target="_blank" rel="noopener">buka iklan ↗</a>`:""}</dd>
+     ${j.appliedAt?`<dt>Applied</dt><dd>${fmt(j.appliedAt)}${j.followUpAt?` · follow-up ${fmt(j.followUpAt)}`:""}</dd>`:""}</dl>
+     <div class="sec"><h3>Kenapa sesuai</h3>${j.reasons?.length?`<ul class="bullets">${j.reasons.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">Belum di-rank.</p>`}</div>
+     <div class="sec"><h3>Gap / risiko</h3>${j.gaps?.length?`<ul class="bullets">${j.gaps.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">Tiada direkod.</p>`}</div>
+     ${j.keywords?.length?`<div class="sec"><h3>Keyword wajib</h3><div class="row">${j.keywords.map(k=>`<span class="chip">${esc(k)}</span>`).join("")}</div></div>`:""}
+     <div class="row">${j.status==="discovered"||j.status==="shortlisted"?`<button class="btn ok" data-act="status" data-id="${j.id}" data-s="applied">Tanda dah apply</button>`:""}<button class="btn" data-act="rerank" data-id="${j.id}" ${S.busy["rank:"+j.id]?"disabled":""}>${S.busy["rank:"+j.id]?"Ranking…":"Rank semula"}</button></div>`;
+  } else if(STREAMS[S.tab]){
+    const kind=S.tab, cfg=STREAMS[kind], key=j.id+":"+kind, live=S.stream[key], saved=j[cfg.field], busy=S.busy[key];
+    const text=live??saved;
+    body=`<div class="row" style="margin-bottom:12px"><button class="btn pri" data-act="gen" data-k="${kind}" ${busy?"disabled":""}>${busy?"AI tengah tulis…":saved?"Jana semula":"Jana "+cfg.label.toLowerCase()}</button>${busy?`<button class="btn" data-act="stop">Stop</button>`:""}${saved&&!busy?`<button class="btn" data-act="copy" data-k="${kind}">Copy</button>${downloads?`<button class="btn" data-act="dl" data-k="${kind}">Simpan .txt</button>`:""}`:""}</div>
+    <div class="out ${text?"":"wait"}" id="out-${kind}">${text?md(text):busy?"Thinking… (biasanya 10–40 saat)":kind==="prep"?"Jana prep sheet: soalan dijangka, pitch 60 saat, cara jawab gap, soalan untuk interviewer.":"Belum dijana. AI guna CV dalam Profile + JD job ni. Semua angka yang tiada akan jadi [ISI: …] supaya kau isi sendiri."}</div>
+    ${!j.jd?`<p class="hint">Tip: job ni tak ada JD penuh. Paste dalam tab Notes & log supaya hasil lebih tepat.</p>`:""}`;
+  } else {
+    body=`<div class="sec"><h3>Notes</h3><textarea id="d_notes" data-draft="notes:${j.id}" rows="5" placeholder="Nama recruiter, gaji yang dibincang, tarikh interview…">${esc(S.drafts["notes:"+j.id]??j.notes??"")}</textarea></div>
+    <div class="sec"><h3>Job description</h3><textarea id="d_jd" data-draft="jd:${j.id}" rows="7" placeholder="Paste JD penuh">${esc(S.drafts["jd:"+j.id]??j.jd??"")}</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="savenotes" data-id="${j.id}">Simpan</button><button class="btn sm" data-act="delete" data-id="${j.id}" style="margin-left:auto;color:var(--red)">${S.confirmDel===j.id?"Tekan sekali lagi untuk padam":"Padam job"}</button></div></div>
+    <div class="sec"><h3>Log aktiviti</h3><ul class="timeline">${[...(j.activity||[])].reverse().map(a=>`<li><time>${fmt(a.t)}</time><span>${esc(a.text)}</span></li>`).join("")||"<li>Tiada lagi.</li>"}</ul></div>`;
+  }
+  root.innerHTML=`<div class="scrim" data-act="close"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(j.title)}">
+   <div class="dhead"><div><h2>${esc(j.title)}</h2><p>${esc(j.company)}${j.location?" · "+esc(j.location):""} ${j.example?'<span class="chip ex">contoh</span>':""}</p></div><button class="x" data-act="close" aria-label="Tutup">×</button></div>
+   <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" data-act="tab" data-t="${k}" aria-selected="${S.tab===k}">${l}</button>`).join("")}</div>
+   <div class="dbody">${body}</div></aside>`;
+}
+function render(force){
+  renderNav();
+  const a=document.activeElement, main=$("#main");
+  const typing=a&&a.matches&&a.matches("input,textarea")&&(main.contains(a)||$("#drawer-root").contains(a));
+  if(force||!typing){
+    const scroll=main.querySelector(".boardwrap")?.scrollLeft;
+    main.innerHTML={today:viewToday,discovery:viewDiscovery,tracker:viewTracker,inbox:viewInbox,profile:viewProfile}[S.view]();
+    if(scroll) { const bw=main.querySelector(".boardwrap"); if(bw) bw.scrollLeft=scroll; }
+    const dscroll=$("#drawer-root .dbody")?.scrollTop;
+    renderDrawer();
+    if(dscroll){ const d=$("#drawer-root .dbody"); if(d) d.scrollTop=dscroll; }
+  }
+}
+function openJob(id,tab){ S.open=id; S.tab=tab||"fit"; S.confirmDel=null; render(); }
+
+// ---------- events ----------
+document.addEventListener("input",e=>{
+  const k=e.target.dataset?.draft; if(!k) return;
+  S.drafts[k]=e.target.value;
+  if(k==="filter"){ S.filter=e.target.value; const pos=e.target.selectionStart; render(true); const f=$("#filter"); if(f){ f.focus(); f.setSelectionRange(pos,pos);} }
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="minScore"){ S.minScore=Number(t.value); render(); }
+  if(t.id==="d_status"){ const j=S.jobs.find(x=>x.id===S.open); if(j) setStatus(j,t.value); }
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&S.open){ S.open=null; render(); } });
+document.addEventListener("click",async e=>{
+  const el=e.target.closest("[data-act]"); if(!el) return;
+  const act=el.dataset.act, j=S.jobs.find(x=>x.id===(el.dataset.id||S.open));
+  switch(act){
+    case "view": S.view=el.dataset.v; S.open=null; render(); window.scrollTo(0,0); break;
+    case "open": openJob(el.dataset.id); break;
+    case "close": S.open=null; render(); break;
+    case "tab": S.tab=el.dataset.t; S.confirmDel=null; render(); break;
+    case "status": if(j){ await setStatus(j,el.dataset.s); toast(`${j.company||j.title}: ${SL[el.dataset.s].l}`);} break;
+    case "followed": if(j){ await patchJob(j.id,{followUpAt:Date.now()+7*DAY,activity:logOf(j,"Follow-up dihantar")}); toast("Follow-up seterusnya dalam 7 hari"); } break;
+    case "plan": makePlan(); break;
+    case "import": importJD(); break;
+    case "rerank": if(j) rerank(j); break;
+    case "gen": if(j) runStream(j,el.dataset.k); break;
+    case "stop": ctl?.abort(); break;
+    case "email": readEmail(); break;
+    case "approve": approveProposal(); break;
+    case "dismiss": S.proposal=null; render(); break;
+    case "copy": { const text=j?.[STREAMS[el.dataset.k].field]||""; try{ await navigator.clipboard.writeText(text); toast("Copied"); }catch{ const o=$("#out-"+el.dataset.k); const r=document.createRange(); r.selectNodeContents(o); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Teks dipilih, tekan Ctrl/Cmd+C"); } break; }
+    case "dl": if(j&&downloads){ const k=el.dataset.k; const name=`${k}-${(j.company||"job").replace(/[^a-z0-9]+/gi,"-")}.txt`; try{ await downloads.save({filename:name,data:j[STREAMS[k].field]||""}); toast("Disimpan"); }catch(err){ if(err?.code!=="cancelled") toast("Tak dapat simpan fail."); } } break;
+    case "savenotes": if(j){ const n=S.drafts["notes:"+j.id]??j.notes??"", jd=S.drafts["jd:"+j.id]??j.jd??""; await patchJob(j.id,{notes:n,jd}); delete S.drafts["notes:"+j.id]; delete S.drafts["jd:"+j.id]; toast("Disimpan"); } break;
+    case "delete": if(j){ if(S.confirmDel===j.id){ S.open=null; S.confirmDel=null; await removeJob(j.id); toast("Job dipadam"); } else { S.confirmDel=j.id; render(); } } break;
+    case "saveprofile": { const p={...(S.profile||{})}; for(const k of ["name","headline","targetRoles","locations","salaryFloor","avoid","resume"]){ if(S.drafts["p_"+k]!=null) p[k]=S.drafts["p_"+k]; delete S.drafts["p_"+k]; } p.updatedAt=Date.now(); await saveProfile(p); toast("Profile disimpan"); break; }
+  }
+});
+// drag & drop on the board
+let dragId=null;
+document.addEventListener("dragstart",e=>{ const c=e.target.closest?.(".card"); if(!c) return; dragId=c.dataset.id; c.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",dragId); }catch{} });
+document.addEventListener("dragend",e=>{ e.target.closest?.(".card")?.classList.remove("dragging"); document.querySelectorAll(".col.over").forEach(c=>c.classList.remove("over")); });
+document.addEventListener("dragover",e=>{ const col=e.target.closest?.("[data-drop]"); if(!col||!dragId) return; e.preventDefault(); document.querySelectorAll(".col.over").forEach(c=>c!==col&&c.classList.remove("over")); col.classList.add("over"); });
+document.addEventListener("drop",async e=>{ const col=e.target.closest?.("[data-drop]"); if(!col||!dragId) return; e.preventDefault(); const j=S.jobs.find(x=>x.id===dragId); dragId=null; col.classList.remove("over"); if(j&&j.status!==col.dataset.drop){ await setStatus(j,col.dataset.drop); toast(`${j.company||j.title}: ${SL[col.dataset.drop].l}`); } });
+
+// ---------- boot ----------
+function useDemo(){ if(S.ready) return; S.ready=true; S.profile={...DEMO_PROFILE}; S.jobs=DEMO_JOBS.map(j=>({...j})); render(); }
+render();
+const use=window.claude?.use;
+if(!use){ useDemo(); }
+else {
+  use("sample").then(s=>{ sample=s; render(); }).catch(()=>{});
+  use("downloads").then(d=>{ downloads=d; }).catch(()=>{});
+  use("db").then(d=>{
+    if(!d){ useDemo(); return; }
+    db=d; S.live=true; S.ready=true;
+    db.doc("profile/main").onSnapshot(s=>{ S.profile=s.exists?s.data():null; render(); },()=>{});
+    db.doc("profile/plan").onSnapshot(s=>{ if(s.exists&&!S.plan) { S.plan=s.data().items; render(); } },()=>{});
+    db.collection("jobs").onSnapshot(q=>{ S.jobs=q.docs.map(d=>({id:d.id,...d.data()})); if(S.open&&!S.jobs.some(j=>j.id===S.open)) S.open=null; render(); },()=>{ toast("Tak dapat baca data."); });
+  }).catch(useDemo);
+}
+})();
+</script>
