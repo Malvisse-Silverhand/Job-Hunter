@@ -1,7 +1,7 @@
 <title>Job Hunter OS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
 /* Layout: fixed navy sidebar (workspace + setup groups) + scrolling workspace; Kanban scrolls inside its own track; job detail opens as a right drawer; ⌘K palette overlays. */
 :root{
@@ -11,7 +11,7 @@
   --chart:#2b5fa8; --grid:#ece5d8;
   --side:#0f2540; --side-ink:#dfe7f2; --side-muted:#8ea0b8; --side-hi:#1b3758;
   --shadow:0 1px 2px rgba(15,37,64,.06),0 6px 18px rgba(15,37,64,.06);
-  --font:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font:"Poppins","Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --r:14px;
 }
@@ -239,12 +239,17 @@ tr:last-child td{border-bottom:none}
 .pal li small{color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:13px;z-index:70;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
 .banner{background:var(--blue-soft);color:var(--blue);border-radius:12px;padding:10px 14px;font-size:12.5px;margin-bottom:16px}
+.langsw{display:flex;gap:4px;background:var(--side-hi);border-radius:10px;padding:3px}
+.langsw button{all:unset;cursor:pointer;flex:1;text-align:center;padding:5px 8px;border-radius:8px;font-size:12px;font-weight:600;color:var(--side-muted)}
+.langsw button[aria-pressed="true"]{background:var(--gold);color:#0f2540}
+.langsw button:focus-visible{outline:2px solid var(--gold)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:80}
 @media (max-width:1080px){.grid2,.grid2e{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){
   .app{grid-template-columns:minmax(0,1fr)}
   .side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;flex-direction:row;align-items:center;padding:10px 16px;gap:10px;z-index:10;overflow-x:auto;overflow-y:hidden}
   .brand>div:last-child,.navlabel,.sidefoot{display:none}
+  .langsw{flex:none}
   .side>div{flex:none}
   .nav{flex-direction:row}
   .nav .n{display:none}
@@ -262,8 +267,9 @@ tr:last-child td{border-bottom:none}
 <div class="app">
   <aside class="side">
     <div class="brand"><div class="logo">J</div><div><b>Job Hunter OS</b><small id="who">Kamal Husaini</small></div></div>
-    <div><div class="navlabel">Workspace</div><nav class="nav" id="nav1" aria-label="Workspace"></nav></div>
-    <div><div class="navlabel">Setup</div><nav class="nav" id="nav2" aria-label="Setup"></nav></div>
+    <div><div class="navlabel" id="nl1">Workspace</div><nav class="nav" id="nav1" aria-label="Workspace"></nav></div>
+    <div><div class="navlabel" id="nl2">Setup</div><nav class="nav" id="nav2" aria-label="Setup"></nav></div>
+    <div class="langsw" role="group" aria-label="Language"><button data-act="lang" data-v="en" aria-pressed="true">EN</button><button data-act="lang" data-v="ja" aria-pressed="false" lang="ja">日本語</button></div>
     <div class="sidefoot" id="sidefoot"></div>
   </aside>
   <main id="main"></main>
@@ -277,6 +283,14 @@ tr:last-child td{border-bottom:none}
 <script>
 (() => {
 "use strict";
+// ---------- i18n: English is the key; JA maps it. Missing entries fall back to English. ----------
+const JA = {", +{n} jobs":"、+{n}件","75+ goes straight to Shortlisted.":"75点以上は自動で候補リストへ。","AI confidence {c}%":"AIの確信度 {c}%","AI draft":"AI下書き","AI failed: {m}":"AIエラー：{m}","AI is extracting…":"AIが抽出中…","AI is reading…":"AIが読んでいます…","AI is thinking…":"AIが考えています…","AI is writing…":"AIが作成中…","AI isn't allowed on this page. Open the artifact's Permissions to allow it.":"このページではAIが許可されていません。アーティファクトの「権限」から許可してください。","AI isn't available in this view.":"この画面ではAIを利用できません。","AI off":"AI オフ","AI reads your CV and suggests 6 search queries, with links to every source you picked.":"AIが履歴書を読み、6つの検索クエリを提案します。選んだ各ソースへのリンク付きです。","AI ready":"AI 利用可能","Acknowledged":"受付確認","Action":"アクション","Activity log":"アクティビティ履歴","Add 3 achievement stories":"実績ストーリーを3つ追加","Add CV":"履歴書を追加","Add a story (STAR)":"ストーリーを追加（STAR）","Add a title first.":"先にタイトルを入力してください。","Add as new job":"新しい求人として追加","Added":"追加","Added to Approvals. Review and approve.":"承認待ちに追加しました。確認して承認してください。","Added to the system":"システムに追加","Aggregator":"アグリゲーター","Alert when fit ≥":"通知する適合度（以上）","Alerts":"アラート","Alerts & follow-ups":"アラートとフォローアップ","All":"すべて","All alerts are showing again":"すべてのアラートを再表示しました","All below your alert threshold.":"すべて通知基準を下回っています。","All locations":"すべての勤務地","All modes":"すべての勤務形態","All ranking, auto-search and AI writing use this. Real facts only.":"ランキング、自動検索、AIの文章作成はすべてこの情報を使います。事実のみを入力してください。","All sources":"すべてのソース","Allow Claude Code Remote for this page first.":"先にこのページで Claude Code Remote を許可してください。","Any":"指定なし","Any (onsite/hybrid/remote)":"指定なし（出社／ハイブリッド／リモート）","Any fit":"適合度すべて","Applications per week":"週ごとの応募数","Applications with no reply after {n} days.":"応募から{n}日経っても返信がない応募です。","Applied":"応募済み","Approvals":"承認","Approvals → Paste an email":"承認 → メールを貼り付け","Approve":"承認する","Attention":"要確認","Auto jobs":"自動検出","Auto-search has never run":"自動検索はまだ一度も実行されていません","Auto-search hasn't run for over 36 hours":"自動検索が36時間以上実行されていません","Auto-search health: when it ran, what it found, which sources are worth it.":"自動検索の状況：いつ実行し、何が見つかり、どのソースが有効か。","Auto-search is off":"自動検索：オフ","Auto-search is on":"自動検索：オン","Auto-search is running…":"自動検索を実行中…","Auto-search off":"自動検索 オフ","Auto-search on":"自動検索 オン","Auto-search runs every morning. You can also search manually and paste a JD.":"自動検索は毎朝実行されます。手動で検索してJDを貼り付けることもできます。","Auto-search started. Results arrive in about 5–15 minutes.":"自動検索を開始しました。結果は約5〜15分で届きます。","Auto-search uses these sources, work mode and keywords.":"自動検索はこれらのソース、勤務形態、キーワードを使います。","Auto-search works better with at least 4–5 sources.":"ソースは4〜5個以上あると自動検索の精度が上がります。","Avg fit":"平均適合度","Avoid":"避けたい条件","Best matches not applied yet":"未応募の高マッチ求人","Board":"ボード","Cancelled.":"キャンセルしました。","Close":"閉じる","Closed: ghosted":"終了：音信不通","Collects listings from many sites":"多くのサイトの求人をまとめて掲載","Company site":"企業サイト","Complete one auto-search":"自動検索を1回完了する","Confidence {c}%":"確信度 {c}%","Continue →":"続ける →","Contract & permanent":"契約・正社員","Copied":"コピーしました","Copy":"コピー","Copy the whole job ad and paste it here…":"求人広告の全文をコピーしてここに貼り付け…","Couldn't read {c}.":"{c}を読み込めませんでした。","Couldn't save the file.":"ファイルを保存できませんでした。","Couldn't start auto-search: {m}":"自動検索を開始できませんでした：{m}","Cover letter":"カバーレター","Created from email: {s}":"メールから作成：{s}","Culture & company profiles":"社風・企業プロフィール","Daily":"毎日","Daily auto-search is off. Manual runs still work.":"毎日の自動検索をオフにしました。手動実行は引き続き使えます。","Daily auto-search is on":"毎日の自動検索をオンにしました","Daily schedule {h}":"毎日 {h} に実行","Data":"データ","Data saved":"データ保存済み","Date removed":"日付を削除しました","Date saved":"日付を保存しました","Date set: {d}":"日付を設定：{d}","Date:":"日付：","Delete":"削除","Delete examples":"サンプルを削除","Delete job":"求人を削除","Delete story":"ストーリーを削除","Delete the example jobs":"サンプル求人を削除する","Delete them so your KPIs are accurate.":"KPIを正確にするために削除してください。","Demo mode":"デモモード","Discovered":"発見","Discovery":"求人探索","Discovery → Paste a JD":"求人探索 → JDを貼り付け","Discovery → Sources":"求人探索 → ソース","Dismiss alert":"アラートを閉じる","Dismissed alerts":"非表示にしたアラート","Do it":"やる","Documents":"書類","Don't accept straight away. Review the package and plan your negotiation.":"すぐに承諾せず、条件を確認して交渉の準備をしましょう。","Done":"完了","Drag cards between columns to change status.":"カードを列の間でドラッグするとステータスが変わります。","Email: {s}":"メール：{s}","Every AI suggestion waits for your approval before anything changes.":"AIの提案は、あなたが承認するまで何も変更しません。","Example":"サンプル","Example jobs":"サンプル求人","Example jobs deleted":"サンプル求人を削除しました","Extra keywords (optional)":"追加キーワード（任意）","Extract from CV":"履歴書から抽出","Finish setup so the AI works properly for you. Every step earns XP.":"AIがきちんと働けるようにセットアップを完了しましょう。各ステップでXPがもらえます。","Fit":"適合度","Fit score":"適合スコア","Fit {n}+":"適合度 {n}以上","Follow up after (days)":"フォローアップまでの日数","Follow-up sent":"フォローアップ送信済み","Follow-ups due":"フォローアップ期限","Follow-ups today":"今日のフォローアップ","Followed up":"フォロー済み","For now, paste emails manually. The Vercel version will use Google Apps Script to read Gmail on its own and send suggestions here.":"今はメールを手動で貼り付けてください。Vercel版では Google Apps Script が Gmail を自動で読み取り、ここに提案を送ります。","Found":"発見","Full CV (paste text)":"履歴書全文（テキストを貼り付け）","Full job description":"求人内容（全文）","Funnel":"ファネル","Gaps / risks":"不足点・リスク","Generate prep":"面接準備を作成","Generate resume":"履歴書を作成","Generate search plan":"検索プランを作成","Generate your first cover letter":"最初のカバーレターを作成","Generate your first tailored resume":"最初のカスタム履歴書を作成","Generate {d}":"{d}を作成","Good news":"朗報","Got a reply":"返信あり","Government":"政府","Greenhouse, Lever, Workday":"Greenhouse、Lever、Workday","Headline":"肩書き","Hybrid":"ハイブリッド","Ignore":"無視","Inbox: paste an email":"受信箱：メールを貼り付け","Info":"情報","Interview":"面接","Interview / date":"面接・日付","Interview coming up, no prep sheet yet.":"面接が近いのに、準備シートがまだありません。","Interview prep":"面接準備","Interviewing":"面接中","Interviews & key dates":"面接と重要な日付","Job":"求人","Job ad link":"求人広告のリンク","Job board":"求人サイト","Job deleted":"求人を削除しました","Job description":"求人内容","Jobs":"求人数","Jobs found by auto-search":"自動検索で見つかった求人","Keywords saved":"キーワードを保存しました","Knowledge bank":"ナレッジバンク","Knowledge bank (AI can extract them from your CV)":"ナレッジバンク（AIが履歴書から抽出できます）","Language":"言語","Last found":"最終検出","Last run {a} · {s}":"前回の実行 {a}・{s}","Last run {a}. Check Monitoring.":"前回の実行は{a}です。モニタリングを確認してください。","Last run {d} · {s}":"前回の実行 {d}・{s}","Links only (auto-search uses the other sites)":"リンクのみ（自動検索は他のサイトを使用）","Live applications":"進行中の応募","Location":"勤務地","Locations":"勤務地","MNC & regional":"多国籍企業・地域統括","Malaysia's main job board":"マレーシア最大の求人サイト","Malaysian startups & SMEs":"マレーシアのスタートアップ・中小企業","Manual":"手動","Manual runs need the Claude Code Remote connector, and this page can't reach it.":"手動実行には Claude Code Remote コネクタが必要ですが、このページから接続できません。","Manual runs only":"手動実行のみ","Manual search":"手動検索","Many listings direct from employers":"企業からの直接掲載が多い","Mark any job as Applied":"いずれかの求人を「応募済み」にする","Mark as applied":"応募済みにする","Mark rejected":"不採用にする","Marked rejected":"不採用にしました","Max jobs per auto-search":"1回の自動検索の最大件数","Metric":"数値","Mid–senior, MNCs":"中堅〜シニア、多国籍企業","Mid–senior, clearer salaries":"中堅〜シニア、給与が明確","Minimum fit":"最低適合度","Minimum salary (RM/month)":"最低希望月給（RM）","Monitoring":"モニタリング","Monitoring → Run now":"モニタリング → 今すぐ実行","Most mid–senior roles":"中堅〜シニア職が最も多い","Must-have keywords":"必須キーワード","Name":"氏名","Never run yet":"未実行","New job added from email":"メールから新しい求人を追加しました","New job: {r} · {c}":"新しい求人：{r}・{c}","New only":"新着のみ","New search":"新規検索","Next follow-up in {n} days":"次のフォローアップは{n}日後","Next up: {r} · {c}":"次はこれ：{r}・{c}","Next {d}":"次回 {d}","Next:":"次の一手：","No activity yet.":"まだアクティビティはありません。","No data yet.":"まだデータがありません。","No dates yet. Set an interview date in the job drawer (Fit tab).":"日付がありません。求人詳細の「適合度」タブで面接日を設定してください。","No follow-ups due. Nice.":"期限のフォローアップはありません。順調です。","No jobs match these filters.":"条件に合う求人はありません。","No jobs yet. Go to Discovery.":"求人がまだありません。求人探索へどうぞ。","No results.":"結果がありません。","No runs yet. Press \"Run now\".":"まだ実行されていません。「今すぐ実行」を押してください。","No stories yet. Press \"Extract from CV\" or write one yourself.":"ストーリーがまだありません。「履歴書から抽出」を押すか、自分で書いてください。","None recorded.":"記録なし。","Not generated yet. The AI uses your CV, Knowledge bank and this job's JD. Missing numbers become [FILL IN: …] so you can add the real ones.":"まだ作成されていません。AIは履歴書、ナレッジバンク、この求人のJDを使います。不明な数値は [FILL IN: …] になるので、実際の数値を入れてください。","Not interested":"興味なし","Not ranked yet.":"まだ評価されていません。","Note":"メモ","Notes":"メモ","Notes & log":"メモと履歴","Nothing is waiting for approval.":"承認待ちはありません。","Nothing yet.":"まだありません。","Offer":"内定","Offer from {c}":"{c}から内定","Official government portal":"政府の公式ポータル","Only {n} sources active":"有効なソースが{n}個のみ","Onsite":"出社","Open":"開く","Open prep":"準備を開く","Other":"その他","Overview":"概要","Page":"ページ","Paste a JD, AI ranks it":"JDを貼り付けてAIが評価","Paste the full JD":"JD全文を貼り付け","Paste the full JD first (at least a few sentences).":"先にJD全文を貼り付けてください（数文以上）。","Paste the full email first.":"先にメール全文を貼り付けてください。","Paste your full CV":"履歴書全文を貼り付ける","Performance by source":"ソース別の成果","Pick sources":"ソースを選ぶ","Pick sources & work mode":"ソースと勤務形態を選ぶ","Popular with local SMEs":"地元の中小企業に人気","Posted":"掲載日","Press again to delete":"もう一度押すと削除","Press × again to delete":"もう一度 × を押すと削除","Probably ghosted. Send one last follow-up, or close it.":"音信不通の可能性があります。最後のフォローアップを送るか、終了しましょう。","Process your first recruiter email":"最初の採用担当メールを処理","Profile & CV":"プロフィールと履歴書","Profile saved":"プロフィールを保存しました","Quest complete: {q} · +{n} XP":"クエスト達成：{q}・+{n} XP","Rank & save":"評価して保存","Rank your first JD":"最初のJDを評価","Ranked: {s}/100 · {v}":"評価：{s}/100・{v}","Ranking and tailoring are less accurate without a JD. Paste it in the Notes tab.":"JDがないと評価と書類作成の精度が下がります。「メモ」タブに貼り付けてください。","Ranking, auto-search and resumes all depend on your full CV.":"ランキング、自動検索、履歴書はすべて履歴書全文に基づきます。","Ranking…":"評価中…","Re-rank":"再評価","Re-ranked: {n}":"再評価：{n}","Read email":"メールを読む","Recent decisions":"最近の判断","Reconnect the Claude Code Remote connector (Settings → Connectors).":"Claude Code Remote コネクタを再接続してください（設定 → コネクタ）。","Recruiter":"人材紹介会社","Recruiter name, salary discussed…":"担当者名、話し合った給与など…","Referral":"紹介","Regenerate":"再作成","Rejected":"不採用","Remote":"リモート","Replies":"返信","Response":"返信率","Response rate ({n} applied)":"返信率（応募{n}件）","Result":"結果","Resume":"履歴書","Resume, cover letter and interview prep for every job, in one place.":"すべての求人の履歴書、カバーレター、面接準備をひとつの場所で。","Resumes and cover letters are always written in English. Summaries, tips and prep notes follow this setting.":"履歴書とカバーレターは常に英語で作成されます。要約、ヒント、面接準備メモはこの設定に従います。","Review":"確認","Run again":"再実行","Run auto-search now":"今すぐ自動検索を実行","Run history":"実行履歴","Run now":"今すぐ実行","Running":"実行中","Running right now":"現在実行中","Salary":"給与","Save":"保存","Save .txt":".txtで保存","Save keywords":"キーワードを保存","Save profile":"プロフィールを保存","Save story":"ストーリーを保存","Saved":"保存しました","Schedule: daily at {h}. You can run it now.":"スケジュール：毎日 {h}。今すぐ実行することもできます。","Scheduled":"定期","Screening":"選考中","Search":"検索","Search (Ctrl/⌘ K)":"検索（Ctrl/⌘ K）","Search pages, jobs or actions…":"ページ、求人、アクションを検索…","Search results":"検索結果","Search role, company or location…":"職種、企業名、勤務地で検索…","Seen":"確認数","Send your first application":"最初の応募を送る","Set target roles & locations":"希望職種と勤務地を設定","Set up your profile":"プロフィールを設定","Settings & profile":"設定とプロフィール","Settings & profile → CV (no [FILL IN] left)":"設定とプロフィール → 履歴書（[FILL IN] を残さない）","Settings saved":"設定を保存しました","Setup":"セットアップ","Setup quest":"セットアップクエスト","Setup quest: {d}/{n} done · {x}/{tx} XP":"セットアップクエスト：{d}/{n} 完了・{x}/{tx} XP","Shortlist":"候補に追加","Shortlist a job in Discovery first.":"先に求人探索で求人を候補に追加してください。","Shortlisted":"候補","auto":"自動","auto-search":"自動検索","Found by auto-search":"自動検索で発見","Example job (delete once you have real data)":"サンプル求人（実データが揃ったら削除）","Company career pages":"企業の採用ページ","Shortlisted but no tailored resume yet.":"候補に入っていますが、カスタム履歴書がまだありません。","Show":"表示","Show again":"再表示","Situation":"状況","So auto-search knows what to look for":"自動検索が何を探すべきか分かるように","So your KPIs are accurate":"KPIを正確にするため","Source":"ソース","Source health":"ソースの状況","Sources & filters":"ソースと絞り込み","Started":"開始","Starting…":"開始中…","Status":"ステータス","Status updates from emails you haven't reviewed.":"未確認のメールによるステータス更新です。","Status → {status}":"ステータス → {status}","Stop":"停止","Story deleted":"ストーリーを削除しました","Story saved":"ストーリーを保存しました","Subject + email body":"件名とメール本文","Success rate":"成功率","Tags (comma separated)":"タグ（カンマ区切り）","Tailor & Prep":"書類・面接準備","Tailor & apply":"書類を作って応募","Tailored resume":"カスタム履歴書","Target roles (comma separated)":"希望職種（カンマ区切り）","Tech & digital roles":"テック・デジタル職","Text is too long. Shorten the JD or CV.":"テキストが長すぎます。JDまたは履歴書を短くしてください。","Text selected, press Ctrl/Cmd+C":"テキストを選択しました。Ctrl/Cmd+C を押してください","The AI answer couldn't be read. Press the button again.":"AIの回答を読み取れませんでした。もう一度ボタンを押してください。","The Claude Code Remote connector isn't connected. Add it in claude.ai → Settings → Connectors.":"Claude Code Remote コネクタが接続されていません。claude.ai → 設定 → コネクタ で追加してください。","The \"Job Hunter auto-search\" Claude Routine runs in the cloud, searches the web using your sources, ranks results and writes them straight here. Manual runs use the Claude Code Remote connector.":"Claude ルーティン「Job Hunter auto-search」がクラウドで動き、あなたのソースでウェブを検索し、結果を評価して直接ここに書き込みます。手動実行には Claude Code Remote コネクタを使います。","The big picture of your job search":"転職活動の全体像","The big picture of your job search (using example jobs)":"転職活動の全体像（サンプル求人を使用）","The connector didn't respond. Try again shortly.":"コネクタが応答しませんでした。少ししてから再試行してください。","The routine refused the request: {m}":"ルーティンがリクエストを拒否しました：{m}","The run didn't finish within 45 minutes.":"実行が45分以内に終わりませんでした。","There are example jobs in the system":"システムにサンプル求人があります","Thinking… (usually 10–40 seconds)":"考え中…（通常10〜40秒）","This email isn't an application update: {s}":"このメールは応募状況の更新ではありません：{s}","This job has no JD. Paste one in the Notes tab first.":"この求人にはJDがありません。先に「メモ」タブに貼り付けてください。","This job has no full JD. Paste it in the Notes & log tab for better results.":"この求人にはJD全文がありません。「メモと履歴」タブに貼り付けると精度が上がります。","This page isn't allowed to use Claude Code Remote yet. Open the artifact's Permissions.":"このページはまだ Claude Code Remote を使えません。アーティファクトの「権限」を開いてください。","Timeline":"タイムライン","Title":"タイトル","Today":"今日","Today: {s} with {c}":"今日：{c}の{s}","Coming up: {s} with {c}":"まもなく：{c}の{s}","Too many requests. Wait a minute and try again.":"リクエストが多すぎます。1分待ってから再試行してください。","Top":"最高","Total runs":"総実行回数","Tracker":"トラッカー","Treat as ghosted after (days)":"音信不通とみなす日数","Try running it again.":"もう一度実行してみてください。","Type":"種類","Urgent":"緊急","View":"表示","Waiting for approval":"承認待ち","Week of {d}: {n} applications":"{d}の週：応募{n}件","What you did":"取った行動","Why it fits":"マッチする理由","Work mode":"勤務形態","Work mode: {m}":"勤務形態：{m}","Workspace":"ワークスペース","Your CV in the system is incomplete":"システム上の履歴書が不完全です","Your organization blocks this connector.":"組織がこのコネクタをブロックしています。","Your real achievement stories. The AI uses them to tailor resumes, cover letters and interview answers.":"あなたの実際の実績ストーリー。AIが履歴書、カバーレター、面接回答の作成に使います。","active":"有効","applied {d}":"{d}に応募","apply":"応募推奨","direct links to your selected sources":"選んだソースへの直接リンク","e.g. 8000":"例：8000","e.g. CPL RM42 → RM18":"例：CPL RM42 → RM18","e.g. Cut CPL on a takaful campaign":"例：タカフルキャンペーンのCPLを削減","e.g. MLM, commission-only, junior":"例：MLM、完全歩合制、ジュニア職","e.g. fintech, B2B, Meta Ads":"例：フィンテック、B2B、Meta広告","example":"サンプル","failed":"失敗","follow-up due":"フォロー期限","follow-up {d}":"フォロー {d}","how many jobs reached each stage":"各段階に到達した求人数","just now":"たった今","last 8 weeks":"直近8週間","last run {a} ({s}{n})":"前回の実行 {a}（{s}{n}）","low, check carefully":"低めなのでよく確認してください","never run yet":"未実行","new":"新着","next {d}":"次回 {d}","no results yet":"結果なし","not stated":"記載なし","off":"オフ","open the ad":"広告を開く","running":"実行中","skip":"見送り","skipped":"スキップ","stretch":"挑戦枠","stuck":"停止中","succeeded":"成功","try again.":"もう一度お試しください。","yesterday":"昨日","{c} · shortlisted {a}. Good roles close fast.":"{c}・{a}に候補入り。良い求人はすぐ締め切られます。","{c}: silent for {n} days":"{c}：{n}日間返信なし","{doc} generated":"{doc}を作成","{d} of {n} quests done":"{n}個中{d}個のクエスト完了","{d} · {l} live applications · {f} follow-ups due":"{d}・進行中の応募 {l}件・フォロー期限 {f}件","{d} · {r}. Open the prep sheet now.":"{d}・{r}。今すぐ準備シートを開きましょう。","{l} live applications · {f} follow-ups due":"進行中の応募 {l}件・フォロー期限 {f}件","{l}: {n} jobs":"{l}：{n}件","{l}: {n} jobs ({p}% of the previous stage)":"{l}：{n}件（前の段階の{p}%）","{n} AI suggestions waiting for approval":"承認待ちのAI提案が{n}件","{n} days after applying, no reply":"応募後{n}日、返信なし","{n} follow-ups due today":"今日のフォローアップ {n}件","{n} hidden":"{n}件を非表示","{n} in the system":"システム内に{n}件","{n} jobs":"{n}件","{n} jobs have no full JD":"JD全文がない求人が{n}件","{n} match not applied yet: {r}":"適合度{n}なのに未応募：{r}","{n} new jobs from auto-search":"自動検索で新着求人{n}件","{n} new jobs from auto-search, {m} scoring {s}+":"自動検索で新着求人{n}件、うち{s}点以上が{m}件","{n} selected":"{n}個選択中","{n} sources":"ソース{n}個","{n} stories added. Review them and fill in the [FILL IN] parts.":"ストーリーを{n}件追加しました。内容を確認し、[FILL IN] の部分を埋めてください。","{n}d ago":"{n}日前","{n}h ago":"{n}時間前","{n}m ago":"{n}分前"};
+let LANG = "en";
+try{ const l=localStorage.getItem("jh_lang"); if(l==="ja"||l==="en") LANG=l; }catch{}
+const t = (s,v) => ((LANG==="ja"&&JA[s])||s).replace(/\{(\w+)\}/g,(_,k)=>v?.[k]??"");
+const LOCALE = () => LANG==="ja"?"ja-JP":"en-MY";
+const LANG_NAME = () => LANG==="ja"?"Japanese":"English";
+
 const DAY = 864e5;
 const TRIGGER_ID = "trig_01LhhyH2aa5xSfkKELiDKQRU";
 const REMOTE = "Claude Code Remote";
@@ -291,10 +305,12 @@ const STATUSES = [
   {k:"rejected",l:"Rejected",c:"#c4473b",r:-1}
 ];
 const SL = Object.fromEntries(STATUSES.map(s => [s.k, s]));
+const stl = k => t(SL[k]?.l||k);
 const BOARD = STATUSES.slice(1).map(s => s.k);
 const LIVE = ["applied","acknowledged","screening","interviewing","offer"];
 const REPLIED = ["acknowledged","screening","interviewing","offer","rejected"];
-const MODES = {any:"Semua",onsite:"Onsite",hybrid:"Hybrid",remote:"Remote"};
+const MODES = {any:"Any",onsite:"Onsite",hybrid:"Hybrid",remote:"Remote"};
+const mdl = k => t(MODES[k]||k);
 const NAV1 = [["overview","Overview"],["today","Today"],["discovery","Discovery"],["tailor","Tailor & Prep"],["approvals","Approvals"],["tracker","Tracker"],["monitoring","Monitoring"]];
 const NAV2 = [["quest","Setup quest"],["knowledge","Knowledge bank"],["settings","Settings & profile"]];
 
@@ -302,18 +318,18 @@ const NAV2 = [["quest","Setup quest"],["knowledge","Knowledge bank"],["settings"
 const g = (site,q,loc,mode) => `https://www.google.com/search?q=${encodeURIComponent(`${site} "${q}" ${mode&&mode!=="any"?mode:""} ${loc||"Malaysia"}`.replace(/\s+/g," ").trim())}`;
 const firstLoc = loc => (loc||"Malaysia").split(",")[0].trim();
 const SOURCES = [
-  {id:"linkedin",name:"LinkedIn Jobs",kind:"Job board",note:"Paling banyak role mid–senior",url:(q,l,m)=>`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&location=${encodeURIComponent(firstLoc(l))}${{onsite:"&f_WT=1",remote:"&f_WT=2",hybrid:"&f_WT=3"}[m]||""}`},
-  {id:"jobstreet",name:"JobStreet",kind:"Job board",note:"Board utama Malaysia",url:(q,l)=>{const s=q.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); const loc=firstLoc(l); return `https://my.jobstreet.com/${s}-jobs${/malaysia|remote/i.test(loc)?"":"/in-"+loc.replace(/\s+/g,"-")}`;}},
-  {id:"indeed",name:"Indeed Malaysia",kind:"Job board",note:"Banyak listing terus dari company",url:(q,l,m)=>`https://malaysia.indeed.com/jobs?q=${encodeURIComponent(q+(m&&m!=="any"?" "+m:""))}&l=${encodeURIComponent(firstLoc(l))}`},
-  {id:"hiredly",name:"Hiredly",kind:"Job board",note:"Startup & SME Malaysia",url:(q,l,m)=>g("site:my.hiredly.com",q,l,m)},
-  {id:"maukerja",name:"Maukerja",kind:"Job board",note:"Popular untuk SME tempatan",url:(q,l,m)=>g("site:maukerja.my",q,l,m)},
+  {id:"linkedin",name:"LinkedIn Jobs",kind:"Job board",note:"Most mid–senior roles",url:(q,l,m)=>`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&location=${encodeURIComponent(firstLoc(l))}${{onsite:"&f_WT=1",remote:"&f_WT=2",hybrid:"&f_WT=3"}[m]||""}`},
+  {id:"jobstreet",name:"JobStreet",kind:"Job board",note:"Malaysia's main job board",url:(q,l)=>{const s=q.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); const loc=firstLoc(l); return `https://my.jobstreet.com/${s}-jobs${/malaysia|remote/i.test(loc)?"":"/in-"+loc.replace(/\s+/g,"-")}`;}},
+  {id:"indeed",name:"Indeed Malaysia",kind:"Job board",note:"Many listings direct from employers",url:(q,l,m)=>`https://malaysia.indeed.com/jobs?q=${encodeURIComponent(q+(m&&m!=="any"?" "+m:""))}&l=${encodeURIComponent(firstLoc(l))}`},
+  {id:"hiredly",name:"Hiredly",kind:"Job board",note:"Malaysian startups & SMEs",url:(q,l,m)=>g("site:my.hiredly.com",q,l,m)},
+  {id:"maukerja",name:"Maukerja",kind:"Job board",note:"Popular with local SMEs",url:(q,l,m)=>g("site:maukerja.my",q,l,m)},
   {id:"glints",name:"Glints Malaysia",kind:"Job board",note:"Tech & digital roles",url:(q,l,m)=>g("site:glints.com/my",q,l,m)},
-  {id:"wobb",name:"WOBB",kind:"Job board",note:"Fokus culture & company profile",url:(q,l,m)=>g("site:wobb.co",q,l,m)},
-  {id:"myfuturejobs",name:"MYFutureJobs (PERKESO)",kind:"Kerajaan",note:"Portal rasmi kerajaan",url:(q,l,m)=>g("site:myfuturejobs.gov.my",q,l,m)},
-  {id:"jora",name:"Jora Malaysia",kind:"Aggregator",note:"Kumpul listing dari banyak site",url:(q,l)=>`https://my.jora.com/j?q=${encodeURIComponent(q)}&l=${encodeURIComponent(firstLoc(l))}`},
-  {id:"google",name:"Google Jobs",kind:"Aggregator",note:"Link sahaja (auto-search guna site lain)",linkOnly:true,url:(q,l,m)=>`https://www.google.com/search?q=${encodeURIComponent(`${q} jobs ${m&&m!=="any"?m:""} ${firstLoc(l)}`)}&ibp=htl;jobs`},
-  {id:"michaelpage",name:"Michael Page MY",kind:"Recruiter",note:"Mid–senior, gaji lebih telus",url:(q,l,m)=>g("site:michaelpage.com.my",q,l,m)},
-  {id:"robertwalters",name:"Robert Walters MY",kind:"Recruiter",note:"Mid–senior, MNC",url:(q,l,m)=>g("site:robertwalters.com.my",q,l,m)},
+  {id:"wobb",name:"WOBB",kind:"Job board",note:"Culture & company profiles",url:(q,l,m)=>g("site:wobb.co",q,l,m)},
+  {id:"myfuturejobs",name:"MYFutureJobs (PERKESO)",kind:"Government",note:"Official government portal",url:(q,l,m)=>g("site:myfuturejobs.gov.my",q,l,m)},
+  {id:"jora",name:"Jora Malaysia",kind:"Aggregator",note:"Collects listings from many sites",url:(q,l)=>`https://my.jora.com/j?q=${encodeURIComponent(q)}&l=${encodeURIComponent(firstLoc(l))}`},
+  {id:"google",name:"Google Jobs",kind:"Aggregator",note:"Links only (auto-search uses the other sites)",linkOnly:true,url:(q,l,m)=>`https://www.google.com/search?q=${encodeURIComponent(`${q} jobs ${m&&m!=="any"?m:""} ${firstLoc(l)}`)}&ibp=htl;jobs`},
+  {id:"michaelpage",name:"Michael Page MY",kind:"Recruiter",note:"Mid–senior, clearer salaries",url:(q,l,m)=>g("site:michaelpage.com.my",q,l,m)},
+  {id:"robertwalters",name:"Robert Walters MY",kind:"Recruiter",note:"Mid–senior, MNCs",url:(q,l,m)=>g("site:robertwalters.com.my",q,l,m)},
   {id:"hays",name:"Hays Malaysia",kind:"Recruiter",note:"MNC & regional",url:(q,l,m)=>g("site:hays.com.my",q,l,m)},
   {id:"randstad",name:"Randstad MY",kind:"Recruiter",note:"Contract & permanent",url:(q,l,m)=>g("site:randstad.com.my",q,l,m)},
   {id:"careers",name:"Company career pages",kind:"Company site",note:"Greenhouse, Lever, Workday",url:(q,l,m)=>g("(site:boards.greenhouse.io OR site:jobs.lever.co OR site:myworkdayjobs.com)",q,l,m)}
@@ -326,9 +342,9 @@ const now0 = Date.now();
 const DEMO = {
   profile:{name:"Kamal Husaini",headline:"Digital marketing lead: paid media + funnels + CRM systems",targetRoles:"Marketing Lead, Digital Marketing Manager, Performance Marketing Lead",locations:"Kuala Lumpur, Selangor",resume:"Kamal Husaini\n- Runs Meta Ads, Google Ads and TikTok Ads end to end.\n- Built a 7-stage Takaful Agency CRM (Next.js + Supabase).\n- Trained 15+ analysts at Genpact (onboarding 30% faster)."},
   jobs:[
-    {title:"Performance Marketing Lead",company:"Contoh: Fintech Co",location:"Kuala Lumpur",workMode:"hybrid",source:"LinkedIn Jobs",sourceId:"linkedin",status:"applied",score:88,verdict:"apply",appliedAt:now0-9*DAY,followUpAt:now0-2*DAY},
-    {title:"Digital Marketing Manager",company:"Contoh: Property Group",location:"Petaling Jaya",workMode:"onsite",source:"JobStreet",sourceId:"jobstreet",status:"interviewing",score:82,verdict:"apply",appliedAt:now0-12*DAY,eventAt:now0+DAY},
-    {title:"Growth Marketing Manager",company:"Contoh: E-commerce",location:"Remote (MY)",workMode:"remote",source:"Hiredly",sourceId:"hiredly",status:"discovered",origin:"auto",score:86,verdict:"apply",foundAt:now0-3600e3}
+    {title:"Performance Marketing Lead",company:"Example: Fintech Co",location:"Kuala Lumpur",workMode:"hybrid",source:"LinkedIn Jobs",sourceId:"linkedin",status:"applied",score:88,verdict:"apply",appliedAt:now0-9*DAY,followUpAt:now0-2*DAY},
+    {title:"Digital Marketing Manager",company:"Example: Property Group",location:"Petaling Jaya",workMode:"onsite",source:"JobStreet",sourceId:"jobstreet",status:"interviewing",score:82,verdict:"apply",appliedAt:now0-12*DAY,eventAt:now0+DAY},
+    {title:"Growth Marketing Manager",company:"Example: E-commerce",location:"Remote (MY)",workMode:"remote",source:"Hiredly",sourceId:"hiredly",status:"discovered",origin:"auto",score:86,verdict:"apply",foundAt:now0-3600e3}
   ].map((j,i)=>({id:"demo"+i,createdAt:now0-(5-i)*DAY,updatedAt:now0-(5-i)*DAY,reasons:[],gaps:[],activity:[],example:true,...j}))
 };
 
@@ -344,19 +360,24 @@ let db=null, sample=null, downloads=null, mcp=null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const md = s => esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^#{1,4} (.+)$/gm,"<b>$1</b>");
-const ago = t => { if(!t) return ""; const m=Math.round((Date.now()-t)/6e4); if(m<60) return m<=1?"baru tadi":m+" min lepas"; const h=Math.round(m/60); if(h<24) return h+"j lepas"; const d=Math.round(h/24); return d===1?"semalam":d+"h lepas"; };
-const fmt = t => t ? new Date(t).toLocaleDateString("en-MY",{day:"numeric",month:"short"}) : "";
-const fmtT = t => t ? new Date(t).toLocaleString("en-MY",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}) : "";
-const dayKey = (t=Date.now()) => new Date(t).toISOString().slice(0,10);
+const ago = ts => { if(!ts) return ""; const m=Math.round((Date.now()-ts)/6e4); if(m<=1) return t("just now"); if(m<60) return t("{n}m ago",{n:m}); const h=Math.round(m/60); if(h<24) return t("{n}h ago",{n:h}); const d=Math.round(h/24); return d===1?t("yesterday"):t("{n}d ago",{n:d}); };
+const fmt = ts => ts ? new Date(ts).toLocaleDateString(LOCALE(),{day:"numeric",month:"short"}) : "";
+const fmtT = ts => ts ? new Date(ts).toLocaleString(LOCALE(),{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}) : "";
+const fmtClock = ts => new Date(ts).toLocaleTimeString(LOCALE(),{hour:"numeric",minute:"2-digit"});
+const dayKey = (ts=Date.now()) => new Date(ts).toISOString().slice(0,10);
 const scoreCls = n => n==null?"lo":n>=80?"hi":n>=60?"mid":"lo";
 const ST = () => ({...DEFAULT_SETTINGS, ...(S.settings||{})});
 const rank = j => Math.max(SL[j.status]?.r ?? 0, j.maxStage ?? -1, j.appliedAt ? 2 : 0);
 const isDue = j => j.followUpAt && j.followUpAt <= Date.now() && ["applied","acknowledged"].includes(j.status);
 const isNew = j => j.origin==="auto" && S.prevSeen!=null && (j.foundAt||j.createdAt) > S.prevSeen && j.status==="discovered";
 const realJobs = () => S.jobs.filter(j => !j.example);
-function toast(msg){ const r=$("#toast-root"); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML="",3000); }
-const errCopy = e => ({not_granted:"AI tak dibenarkan untuk page ni. Buka Permissions artifact untuk benarkan.",rate_limited:"Terlalu banyak request. Tunggu seminit dan cuba lagi.",cancelled:"Dibatalkan.",invalid_json:"AI bagi jawapan yang tak boleh dibaca. Tekan sekali lagi.",prompt_too_large:"Teks terlalu panjang. Pendekkan JD atau CV."}[e?.code] || "AI gagal: " + (e?.message || "cuba lagi."));
-const mcpCopy = e => ({server_not_connected:"Connector Claude Code Remote belum disambung. Tambah dalam claude.ai → Settings → Connectors.",needs_reauth:"Connector Claude Code Remote perlu disambung semula (Settings → Connectors).",not_granted:"Page ni belum dibenarkan guna Claude Code Remote. Buka Permissions artifact.",consent_required:"Benarkan Claude Code Remote untuk page ni dulu.",blocked_by_policy:"Organisasi kau block connector ni.",tool_error:"Routine tolak request: "+(e?.message||""),server_unavailable:"Connector tak respond. Cuba lagi sekejap.",cancelled:"Dibatalkan."}[e?.code] || "Tak dapat jalankan auto-search: "+(e?.message||e?.code||"ralat"));
+const hasPlaceholder = r => /\[(ISI|FILL)/i.test(r||"");
+function toast(msg){ const r=$("#toast-root"); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.h); toast.h=setTimeout(()=>r.innerHTML="",3000); }
+const errCopy = e => ({not_granted:t("AI isn't allowed on this page. Open the artifact's Permissions to allow it."),rate_limited:t("Too many requests. Wait a minute and try again."),cancelled:t("Cancelled."),invalid_json:t("The AI answer couldn't be read. Press the button again."),prompt_too_large:t("Text is too long. Shorten the JD or CV.")}[e?.code] || t("AI failed: {m}",{m:e?.message||t("try again.")}));
+const mcpCopy = e => ({server_not_connected:t("The Claude Code Remote connector isn't connected. Add it in claude.ai → Settings → Connectors."),needs_reauth:t("Reconnect the Claude Code Remote connector (Settings → Connectors)."),not_granted:t("This page isn't allowed to use Claude Code Remote yet. Open the artifact's Permissions."),consent_required:t("Allow Claude Code Remote for this page first."),blocked_by_policy:t("Your organization blocks this connector."),tool_error:t("The routine refused the request: {m}",{m:e?.message||""}),server_unavailable:t("The connector didn't respond. Try again shortly."),cancelled:t("Cancelled.")}[e?.code] || t("Couldn't start auto-search: {m}",{m:e?.message||e?.code||"error"}));
+// Activity entries store an English key + vars so they render in the current language.
+const act = (k,v) => ({t:Date.now(),k,v});
+const actText = a => { if(!a.k) return a.text||""; const v={...a.v}; if(v.status) v.status=stl(v.status); if(v.doc) v.doc=t(v.doc); if(v.ts) v.d=fmtT(v.ts); return t(a.k,v); };
 
 // ---------- data layer (db when available, in-memory otherwise) ----------
 const newId = col => db ? db.collection(col).doc().id : col.slice(0,3)+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -369,14 +390,14 @@ const saveUi = patch => putDoc("ui",{dismissed:{},seen:{},quests:[],...(S.ui||{}
 
 async function addJob(data){
   const id=newId("jobs");
-  await put("jobs",id,{createdAt:Date.now(),updatedAt:Date.now(),status:"discovered",origin:"manual",reasons:[],gaps:[],activity:[{t:Date.now(),text:"Ditambah ke sistem"}],...data});
+  await put("jobs",id,{createdAt:Date.now(),updatedAt:Date.now(),status:"discovered",origin:"manual",reasons:[],gaps:[],activity:[act("Added to the system")],...data});
   return id;
 }
 const patchJob = (id,patch) => upd("jobs",id,{...patch,updatedAt:Date.now()});
-function logOf(j,text){ return [...(j.activity||[]),{t:Date.now(),text}].slice(-40); }
-async function setStatus(j,st,note){
-  if(j.status===st && !note) return;
-  const p={status:st,activity:logOf(j,note||("Status → "+SL[st].l)),maxStage:Math.max(rank(j),SL[st].r)};
+function logOf(j,k,v){ return [...(j.activity||[]),act(k,v)].slice(-40); }
+async function setStatus(j,st,k,v){
+  if(j.status===st && !k) return;
+  const p={status:st,activity:logOf(j,k||"Status → {status}",k?v:{status:st}),maxStage:Math.max(rank(j),SL[st].r)};
   if(st==="applied" && !j.appliedAt){ p.appliedAt=Date.now(); p.followUpAt=Date.now()+ST().followDays*DAY; }
   if(!["applied","acknowledged"].includes(st)) p.followUpAt=null;
   await patchJob(j.id,p);
@@ -386,45 +407,45 @@ async function setStatus(j,st,note){
 function profileText(){
   const p=S.profile||{}, s=ST();
   const stories=S.stories.slice(0,10).map(x=>`- ${x.title}: ${x.situation||""} ${x.action||""} Result: ${x.result||""} ${x.metric?"("+x.metric+")":""}`).join("\n");
-  return `CANDIDATE PROFILE\nName: ${p.name||""}\nHeadline: ${p.headline||""}\nTarget roles: ${p.targetRoles||""}\nLocations: ${p.locations||""}\nPreferred work mode: ${MODES[s.workMode]||"any"}\nSalary floor: ${p.salaryFloor||"not stated"}\nAvoid: ${p.avoid||"none"}\n\nRESUME\n${p.resume||"(empty)"}${stories?`\n\nACHIEVEMENT STORIES (true, from the candidate)\n${stories}`:""}`;
+  return `CANDIDATE PROFILE\nName: ${p.name||""}\nHeadline: ${p.headline||""}\nTarget roles: ${p.targetRoles||""}\nLocations: ${p.locations||""}\nPreferred work mode: ${MODES[s.workMode]||"Any"}\nSalary floor: ${p.salaryFloor||"not stated"}\nAvoid: ${p.avoid||"none"}\n\nRESUME\n${p.resume||"(empty)"}${stories?`\n\nACHIEVEMENT STORIES (true, from the candidate)\n${stories}`:""}`;
 }
-const HONEST = "Rules: never invent experience, employers, dates or metrics. If a number is missing, write a placeholder like [ISI: angka sebenar]. No em dashes. Plain human voice, no buzzwords like 'passionate about leveraging'.";
+const HONEST = "Rules: never invent experience, employers, dates or metrics. If a number is missing, write a placeholder like [FILL IN: real number]. No em dashes. Plain human voice, no buzzwords like 'passionate about leveraging'.";
 async function ai(key, run){
-  if(!sample){ toast("AI tak available dalam view ni."); return; }
+  if(!sample){ toast(t("AI isn't available in this view.")); return; }
   if(S.busy[key]) return;
   S.busy[key]=true; render();
   try { return await run(); }
   catch(e){ if(e?.code!=="cancelled") toast(errCopy(e)); return undefined; }
   finally { S.busy[key]=false; render(); }
 }
-const rankPrompt = jd => `${profileText()}\n\nJOB POSTING (pasted by the candidate)\n${jd}\n\nYou are a blunt, fair recruiter in Malaysia. Extract the job details and score the fit of THIS candidate for THIS job from 0-100 based only on evidence in the resume and stories. Penalise a work-mode mismatch. Reply with only a JSON object:\n{"title":string,"company":string,"location":string,"workMode":"onsite"|"hybrid"|"remote"|"unknown","salary":string|null,"url":string|null,"score":number,"verdict":"apply"|"stretch"|"skip","reasons":[up to 4 short strings],"gaps":[up to 4 short strings],"keywords":[up to 8 must-have keywords]}`;
+const rankPrompt = jd => `${profileText()}\n\nJOB POSTING (pasted by the candidate)\n${jd}\n\nYou are a blunt, fair recruiter in Malaysia. Extract the job details and score the fit of THIS candidate for THIS job from 0-100 based only on evidence in the resume and stories. Penalise a work-mode mismatch. Write reasons and gaps in ${LANG_NAME()}. Reply with only a JSON object:\n{"title":string,"company":string,"location":string,"workMode":"onsite"|"hybrid"|"remote"|"unknown","salary":string|null,"url":string|null,"score":number,"verdict":"apply"|"stretch"|"skip","reasons":[up to 4 short strings],"gaps":[up to 4 short strings],"keywords":[up to 8 must-have keywords]}`;
 async function importJD(){
   const jd=(S.drafts.jd||"").trim();
-  if(jd.length<60){ toast("Paste JD penuh dulu (sekurang-kurangnya beberapa ayat)."); return; }
+  if(jd.length<60){ toast(t("Paste the full JD first (at least a few sentences).")); return; }
   const r=await ai("rank",()=>sample.json(rankPrompt(jd)));
   if(!r) return;
   const sid=S.drafts.jdSource||"linkedin";
   const score=Math.max(0,Math.min(100,Number(r.score)||0));
   const id=await addJob({title:r.title||"Untitled role",company:r.company||"",location:r.location||"",workMode:r.workMode||"unknown",salary:r.salary||"",
-    source:SRC[sid]?.name||"Manual",sourceId:sid,url:r.url||S.drafts.jdUrl||"",score,verdict:r.verdict||"stretch",
+    source:SRC[sid]?.name||"Referral",sourceId:sid,url:r.url||S.drafts.jdUrl||"",score,verdict:r.verdict||"stretch",
     reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],jd,status:score>=75?"shortlisted":"discovered",maxStage:score>=75?1:0});
-  S.drafts.jd=""; S.drafts.jdUrl=""; toast(`Ranked: ${score}/100 · ${r.verdict}`);
+  S.drafts.jd=""; S.drafts.jdUrl=""; toast(t("Ranked: {s}/100 · {v}",{s:score,v:t(r.verdict||"stretch")}));
   openJob(id,"fit");
 }
 async function rerank(j){
-  if(!j.jd){ toast("Job ni tak ada JD. Paste JD dalam tab Notes dulu."); return; }
+  if(!j.jd){ toast(t("This job has no JD. Paste one in the Notes tab first.")); return; }
   const r=await ai("rank:"+j.id,()=>sample.json(rankPrompt(j.jd)));
-  if(r) await patchJob(j.id,{score:Number(r.score)||0,verdict:r.verdict,reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],workMode:r.workMode||j.workMode,activity:logOf(j,"Re-rank: "+r.score)});
+  if(r) await patchJob(j.id,{score:Number(r.score)||0,verdict:r.verdict,reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],workMode:r.workMode||j.workMode,activity:logOf(j,"Re-ranked: {n}",{n:r.score})});
 }
 async function makePlan(){
   const s=ST();
-  const r=await ai("plan",()=>sample.json(`${profileText()}\n\nSuggest the 6 best job-search queries for this candidate on Malaysian job boards, ordered from strongest fit. Mix exact titles with adjacent titles they could realistically win.${s.extraKeywords?" Also consider: "+s.extraKeywords+".":""} Reply with only a JSON array: [{"query":string (2-5 words, a job title or title+skill),"location":string (one city/region from their locations, or "Malaysia"),"why":string (one short sentence, casual Malaysian Malay)}]`,{modelTier:"quick"}));
-  if(Array.isArray(r)) putDoc("plan",{items:r,at:Date.now()});
+  const r=await ai("plan",()=>sample.json(`${profileText()}\n\nSuggest the 6 best job-search queries for this candidate on Malaysian job boards, ordered from strongest fit. Mix exact titles with adjacent titles they could realistically win.${s.extraKeywords?" Also consider: "+s.extraKeywords+".":""} Keep "query" in English (job boards are English). Reply with only a JSON array: [{"query":string (2-5 words, a job title or title+skill),"location":string (one city/region from their locations, or "Malaysia"),"why":string (one short sentence in ${LANG_NAME()})}]`,{modelTier:"quick"}));
+  if(Array.isArray(r)) putDoc("plan",{items:r,at:Date.now(),lang:LANG});
 }
 const STREAMS = {
-  resume:{field:"tailored",label:"Tailored resume",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company} (${j.location||""})\nJD:\n${j.jd||"(no JD pasted; use the title and keywords: "+(j.keywords||[]).join(", ")+")"}\n\nRewrite the resume for this job. Output plain text with these parts: SUMMARY (3 lines), KEY SKILLS (comma list mirroring the JD's language, only skills the resume supports), EXPERIENCE BULLETS (6-8 bullets, strongest-match first, reworded in the JD's terms, use the stories where relevant), then WHAT I CHANGED (3 short lines) and GAPS TO ADDRESS (honest). ${HONEST}`},
-  cover:{field:"coverLetter",label:"Cover letter",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nWrite a cover letter under 280 words. Payload first: open with the specific match, then 3 short proof points tied to the JD (prefer the stories), then one line on why this company, then a plain close. Malaysian business English. ${HONEST}`},
-  prep:{field:"prep",label:"Interview prep",prompt:j=>`${profileText()}\n\nINTERVIEW FOR: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nBuild an interview prep sheet in plain text:\n1. WHAT THEY WILL PROBE (4 bullets, from the JD)\n2. LIKELY QUESTIONS (8: mix behavioural, technical marketing, case) and for each a one-line hint of which real story to use (STAR)\n3. MY 60-SECOND PITCH (draft)\n4. GAPS & HOW TO ANSWER HONESTLY\n5. SMART QUESTIONS TO ASK THEM (5)\n6. RESEARCH BEFORE THE CALL (checklist; say 'unknown' instead of guessing company facts). ${HONEST}`}
+  resume:{field:"tailored",label:"Tailored resume",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company} (${j.location||""})\nJD:\n${j.jd||"(no JD pasted; use the title and keywords: "+(j.keywords||[]).join(", ")+")"}\n\nRewrite the resume for this job, in English. Output plain text with these parts: SUMMARY (3 lines), KEY SKILLS (comma list mirroring the JD's language, only skills the resume supports), EXPERIENCE BULLETS (6-8 bullets, strongest-match first, reworded in the JD's terms, use the stories where relevant), then WHAT I CHANGED (3 short lines) and GAPS TO ADDRESS (honest). ${HONEST}`},
+  cover:{field:"coverLetter",label:"Cover letter",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nWrite a cover letter in English, under 280 words. Payload first: open with the specific match, then 3 short proof points tied to the JD (prefer the stories), then one line on why this company, then a plain close. Malaysian business English. ${HONEST}`},
+  prep:{field:"prep",label:"Interview prep",prompt:j=>`${profileText()}\n\nINTERVIEW FOR: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nBuild an interview prep sheet in plain text. Write the explanations in ${LANG_NAME()}, but write the 60-second pitch and the suggested answers in English (the interview is in English):\n1. WHAT THEY WILL PROBE (4 bullets, from the JD)\n2. LIKELY QUESTIONS (8: mix behavioural, technical marketing, case) and for each a one-line hint of which real story to use (STAR)\n3. MY 60-SECOND PITCH (draft)\n4. GAPS & HOW TO ANSWER HONESTLY\n5. SMART QUESTIONS TO ASK THEM (5)\n6. RESEARCH BEFORE THE CALL (checklist; say 'unknown' instead of guessing company facts). ${HONEST}`}
 };
 let ctl=null;
 async function runStream(j,kind){
@@ -433,51 +454,51 @@ async function runStream(j,kind){
   const r=await ai(key,()=>sample(cfg.prompt(j),{signal:ctl.signal,onText:({text})=>{S.stream[key]=text; const o=document.getElementById("out-"+kind); if(o){o.classList.remove("wait"); o.innerHTML=md(text);}}}));
   const text=r?.text||S.stream[key];
   delete S.stream[key];
-  if(text) await patchJob(j.id,{[cfg.field]:text,activity:logOf(j,cfg.label+" dijana")}); else render();
+  if(text) await patchJob(j.id,{[cfg.field]:text,activity:logOf(j,"{doc} generated",{doc:cfg.label})}); else render();
 }
 async function readEmail(){
   const em=(S.drafts.email||"").trim();
-  if(em.length<20){ toast("Paste email penuh dulu."); return; }
+  if(em.length<20){ toast(t("Paste the full email first.")); return; }
   const list=S.jobs.map(j=>({id:j.id,title:j.title,company:j.company,status:j.status}));
-  const r=await ai("email",()=>sample.json(`You update a job-application tracker from an email the candidate received.\nStatuses in order: ${STATUSES.map(s=>s.k).join(", ")}.\nTracked jobs (JSON): ${JSON.stringify(list)}\n\nEMAIL:\n${em}\n\nDecide which tracked job it is about (match on company name, sender domain, role title) and what status it implies: an auto-reply 'we received your application' = acknowledged; recruiter call / assessment / HR screen = screening; interview invite = interviewing; offer = offer; 'unfortunately'/'not moving forward' = rejected. Not job-related = newStatus null. Reply with only JSON: {"jobId":string|null,"company":string|null,"role":string|null,"newStatus":string|null,"confidence":number 0-1,"summary":string (one line, casual Malaysian Malay),"nextAction":string (one concrete step, casual Malaysian Malay),"eventDate":string|null (ISO 8601 date-time of any interview/deadline mentioned)}`,{modelTier:"quick"}));
+  const r=await ai("email",()=>sample.json(`You update a job-application tracker from an email the candidate received.\nStatuses in order: ${STATUSES.map(s=>s.k).join(", ")}.\nTracked jobs (JSON): ${JSON.stringify(list)}\n\nEMAIL:\n${em}\n\nDecide which tracked job it is about (match on company name, sender domain, role title) and what status it implies: an auto-reply 'we received your application' = acknowledged; recruiter call / assessment / HR screen = screening; interview invite = interviewing; offer = offer; 'unfortunately'/'not moving forward' = rejected. Not job-related = newStatus null. Reply with only JSON: {"jobId":string|null,"company":string|null,"role":string|null,"newStatus":string|null,"confidence":number 0-1,"summary":string (one line, in ${LANG_NAME()}),"nextAction":string (one concrete step, in ${LANG_NAME()}),"eventDate":string|null (ISO 8601 date-time of any interview/deadline mentioned)}`,{modelTier:"quick"}));
   if(!r) return;
-  if(!r.newStatus){ toast("Email ni bukan update application: "+(r.summary||"")); return; }
+  if(!r.newStatus){ toast(t("This email isn't an application update: {s}",{s:r.summary||""})); return; }
   await put("approvals",newId("approvals"),{kind:"email",jobId:S.jobs.some(j=>j.id===r.jobId)?r.jobId:null,company:r.company||"",role:r.role||"",newStatus:SL[r.newStatus]?r.newStatus:"acknowledged",confidence:Number(r.confidence)||0,summary:r.summary||"",nextAction:r.nextAction||"",eventDate:r.eventDate||null,snippet:em.slice(0,280),state:"pending",createdAt:Date.now()});
-  S.drafts.email=""; toast("Masuk Approvals. Semak dan approve.");
+  S.drafts.email=""; toast(t("Added to Approvals. Review and approve."));
 }
 async function approve(a){
   let j=S.jobs.find(x=>x.id===a.jobId);
   const ev=a.eventDate&&!isNaN(Date.parse(a.eventDate))?Date.parse(a.eventDate):null;
   if(!j){
-    const id=await addJob({title:a.role||"Role dari email",company:a.company||"",source:"Email",sourceId:"email",status:a.newStatus,maxStage:SL[a.newStatus].r,eventAt:ev,notes:a.nextAction?"• "+a.nextAction:"",activity:[{t:Date.now(),text:"Dicipta dari email: "+a.summary}]});
-    await upd("approvals",a.id,{state:"approved",decidedAt:Date.now(),jobId:id}); toast("Job baru ditambah dari email"); return;
+    const id=await addJob({title:a.role||"Role from email",company:a.company||"",source:"Email",sourceId:"email",status:a.newStatus,maxStage:SL[a.newStatus].r,eventAt:ev,notes:a.nextAction?"• "+a.nextAction:"",activity:[act("Created from email: {s}",{s:a.summary})]});
+    await upd("approvals",a.id,{state:"approved",decidedAt:Date.now(),jobId:id}); toast(t("New job added from email")); return;
   }
-  await setStatus(j,a.newStatus,"Email: "+(a.summary||SL[a.newStatus].l));
+  await setStatus(j,a.newStatus,"Email: {s}",{s:a.summary||SL[a.newStatus].l});
   const extra={}; if(ev) extra.eventAt=ev; if(a.nextAction) extra.notes=((j.notes||"")+"\n• "+a.nextAction).trim();
   if(Object.keys(extra).length) await patchJob(j.id,extra);
   await upd("approvals",a.id,{state:"approved",decidedAt:Date.now()});
-  toast(`${j.company}: ${SL[a.newStatus].l}`);
+  toast(`${j.company}: ${stl(a.newStatus)}`);
 }
 async function extractStories(){
-  const r=await ai("stories",()=>sample.json(`${profileText()}\n\nPull out up to 6 distinct achievement stories from the resume, for use in tailoring and interviews. Only use facts in the resume; where a number is missing use "[ISI: ...]". Reply with only a JSON array: [{"title":string (short),"situation":string,"action":string,"result":string,"metric":string|null,"tags":[up to 4 short strings]}]`));
+  const r=await ai("stories",()=>sample.json(`${profileText()}\n\nPull out up to 6 distinct achievement stories from the resume, for use in tailoring and interviews. Write them in English. Only use facts in the resume; where a number is missing use "[FILL IN: ...]". Reply with only a JSON array: [{"title":string (short),"situation":string,"action":string,"result":string,"metric":string|null,"tags":[up to 4 short strings]}]`));
   if(!Array.isArray(r)) return;
   for(const s of r) await put("stories",newId("stories"),{...s,tags:s.tags||[],createdAt:Date.now(),fromAI:true});
-  toast(`${r.length} cerita ditambah. Semak dan betulkan [ISI].`);
+  toast(t("{n} stories added. Review them and fill in the [FILL IN] parts.",{n:r.length}));
 }
 
 // ---------- auto-search (Claude Code Routine via connector) ----------
 const lastRun = () => [...S.runs].sort((a,b)=>(b.startedAt||0)-(a.startedAt||0))[0];
 const runStuck = r => r && r.status==="running" && Date.now()-(r.startedAt||0) > 45*6e4;
-function nextRunAt(){ const d=new Date(); const t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),23,55); return t>Date.now()?t:t+DAY; }
+function nextRunAt(){ const d=new Date(); const x=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),23,55); return x>Date.now()?x:x+DAY; }
 async function runNow(){
-  if(!mcp){ toast("Run manual perlukan connector Claude Code Remote. Page ni tak dapat capai connector."); return; }
+  if(!mcp){ toast(t("Manual runs need the Claude Code Remote connector, and this page can't reach it.")); return; }
   if(S.busy.run) return;
   S.busy.run=true; render();
   try{
     // The routine reads lastManualAt to know this run is manual (it runs even when the daily schedule is off).
     await saveSettings({lastManualAt:Date.now()});
     await mcp.callTool(REMOTE,"fire_trigger",{trigger_id:TRIGGER_ID});
-    toast("Auto-search dah mula. Hasil masuk dalam ~5–15 minit.");
+    toast(t("Auto-search started. Results arrive in about 5–15 minutes."));
   }catch(e){ toast(mcpCopy(e)); }
   finally{ S.busy.run=false; render(); }
 }
@@ -487,40 +508,42 @@ function alertsFor(scope){
   const s=ST(), out=[], now=Date.now(), today=dayKey();
   const add=(scopes,a)=>{ if(scopes.includes(scope)) out.push(a); };
   for(const j of S.jobs){
-    if(j.eventAt && j.eventAt>now-6*36e5 && j.eventAt<now+2*DAY && ["screening","interviewing","offer"].includes(j.status))
-      add(["today"],{id:`ev-${j.id}-${j.eventAt}`,lvl:"critical",title:`${j.eventAt<now+DAY&&new Date(j.eventAt).getDate()===new Date().getDate()?"Hari ni":"Tak lama lagi"}: ${SL[j.status].l} ${j.company}`,body:`${fmtT(j.eventAt)} · ${j.title}. Buka prep sheet sekarang.`,act:"open",arg:j.id,tab:"prep",label:"Buka prep"});
-    if(j.status==="offer") add(["today"],{id:`offer-${j.id}`,lvl:"good",title:`Offer dari ${j.company}`,body:"Jangan terus terima. Semak pakej dan rancang negotiate.",act:"open",arg:j.id,label:"Buka"});
+    if(j.eventAt && j.eventAt>now-6*36e5 && j.eventAt<now+2*DAY && ["screening","interviewing","offer"].includes(j.status)){
+      const isToday=dayKey(j.eventAt)===today;
+      add(["today"],{id:`ev-${j.id}-${j.eventAt}`,lvl:"critical",title:t(isToday?"Today: {s} with {c}":"Coming up: {s} with {c}",{s:stl(j.status),c:companyOf(j)}),body:t("{d} · {r}. Open the prep sheet now.",{d:fmtT(j.eventAt),r:j.title}),act:"open",arg:j.id,tab:"prep",label:t("Open prep")});
+    }
+    if(j.status==="offer") add(["today"],{id:`offer-${j.id}`,lvl:"good",title:t("Offer from {c}",{c:companyOf(j)}),body:t("Don't accept straight away. Review the package and plan your negotiation."),act:"open",arg:j.id,label:t("Open")});
     if(["applied","acknowledged"].includes(j.status)&&j.appliedAt&&now-j.appliedAt>s.ghostDays*DAY)
-      add(["today"],{id:`ghost-${j.id}`,lvl:"info",title:`${j.company}: senyap ${Math.round((now-j.appliedAt)/DAY)} hari`,body:"Mungkin ghosted. Hantar satu follow-up terakhir, atau tutup.",act:"ghost",arg:j.id,label:"Tanda rejected"});
+      add(["today"],{id:`ghost-${j.id}`,lvl:"info",title:t("{c}: silent for {n} days",{c:companyOf(j),n:Math.round((now-j.appliedAt)/DAY)}),body:t("Probably ghosted. Send one last follow-up, or close it."),act:"ghost",arg:j.id,label:t("Mark rejected")});
     if(j.status==="shortlisted"&&(j.score||0)>=85&&now-(j.createdAt||now)>3*DAY)
-      add(["today","discovery"],{id:`stale-${j.id}`,lvl:"warn",title:`Match ${j.score} belum apply: ${j.title}`,body:`${j.company} · disenarai ${ago(j.createdAt)}. Role bagus selalu tutup cepat.`,act:"open",arg:j.id,tab:"resume",label:"Tailor & apply"});
+      add(["today","discovery"],{id:`stale-${j.id}`,lvl:"warn",title:t("{n} match not applied yet: {r}",{n:j.score,r:j.title}),body:t("{c} · shortlisted {a}. Good roles close fast.",{c:companyOf(j),a:ago(j.createdAt)}),act:"open",arg:j.id,tab:"resume",label:t("Tailor & apply")});
   }
   const due=S.jobs.filter(isDue).length;
-  if(due) add(["today"],{id:`due-${today}`,lvl:"warn",title:`${due} follow-up due hari ni`,body:`Application yang tiada reply lepas ${s.followDays} hari.`,act:"scroll",arg:"due",label:"Tengok"});
+  if(due) add(["today"],{id:`due-${today}`,lvl:"warn",title:t("{n} follow-ups due today",{n:due}),body:t("Applications with no reply after {n} days.",{n:s.followDays}),act:"scroll",arg:"due",label:t("View")});
   const pend=S.approvals.filter(a=>a.state==="pending").length;
-  if(pend) add(["today"],{id:`appr-${pend}-${today}`,lvl:"warn",title:`${pend} cadangan AI tunggu approval`,body:"Update status dari email yang belum disemak.",act:"view",arg:"approvals",label:"Semak"});
+  if(pend) add(["today"],{id:`appr-${pend}-${today}`,lvl:"warn",title:t("{n} AI suggestions waiting for approval",{n:pend}),body:t("Status updates from emails you haven't reviewed."),act:"view",arg:"approvals",label:t("Review")});
   const fresh=S.jobs.filter(isNew), strong=fresh.filter(j=>(j.score||0)>=s.alertScore);
-  if(fresh.length) add(["today","discovery"],{id:`new-${fresh.map(j=>j.id).sort().join("").slice(-24)}`,lvl:strong.length?"good":"info",title:`${fresh.length} job baru dari auto-search${strong.length?`, ${strong.length} match ${s.alertScore}+`:""}`,body:strong.slice(0,3).map(j=>`${j.title} (${j.company}) ${j.score}`).join(" · ")||"Semua bawah threshold alert kau.",act:"view",arg:"discovery",label:"Tengok"});
+  if(fresh.length) add(["today","discovery"],{id:`new-${fresh.map(j=>j.id).sort().join("").slice(-24)}`,lvl:strong.length?"good":"info",title:strong.length?t("{n} new jobs from auto-search, {m} scoring {s}+",{n:fresh.length,m:strong.length,s:s.alertScore}):t("{n} new jobs from auto-search",{n:fresh.length}),body:strong.slice(0,3).map(j=>`${j.title} (${companyOf(j)}) ${j.score}`).join(" · ")||t("All below your alert threshold."),act:"view",arg:"discovery",label:t("View")});
   const lr=lastRun();
-  if(lr&&(lr.status==="failed"||runStuck(lr))) add(["today","discovery"],{id:`run-${lr.id}`,lvl:"critical",title:runStuck(lr)?"Auto-search tersangkut":"Auto-search gagal",body:(lr.error||"Run tak habis dalam 45 minit.")+" Cuba jalankan semula.",act:"run",label:"Jalankan semula"});
-  if(s.autoEnabled&&lr&&now-(lr.startedAt||0)>36*36e5) add(["discovery"],{id:`stale-run-${today}`,lvl:"warn",title:"Auto-search tak jalan lebih 36 jam",body:`Run terakhir ${ago(lr.startedAt)}. Semak Monitoring.`,act:"view",arg:"monitoring",label:"Monitoring"});
-  if(!lr) add(["discovery"],{id:"norun",lvl:"info",title:"Auto-search belum pernah jalan",body:`Jadual: setiap hari ${new Date(nextRunAt()).toLocaleTimeString("en-MY",{hour:"numeric",minute:"2-digit"})}. Boleh run sekarang.`,act:"run",label:"Run sekarang"});
+  if(lr&&(lr.status==="failed"||runStuck(lr))) add(["today","discovery"],{id:`run-${lr.id}`,lvl:"critical",title:t(runStuck(lr)?"Auto-search is stuck":"Auto-search failed"),body:(lr.error||t("The run didn't finish within 45 minutes."))+" "+t("Try running it again."),act:"run",label:t("Run again")});
+  if(s.autoEnabled&&lr&&now-(lr.startedAt||0)>36*36e5) add(["discovery"],{id:`stale-run-${today}`,lvl:"warn",title:t("Auto-search hasn't run for over 36 hours"),body:t("Last run {a}. Check Monitoring.",{a:ago(lr.startedAt)}),act:"view",arg:"monitoring",label:t("Monitoring")});
+  if(!lr) add(["discovery"],{id:"norun",lvl:"info",title:t("Auto-search has never run"),body:t("Schedule: daily at {h}. You can run it now.",{h:fmtClock(nextRunAt())}),act:"run",label:t("Run now")});
   const active=s.sources.filter(id=>SRC[id]&&!SRC[id].linkOnly).length;
-  if(active<3) add(["discovery"],{id:`src-${active}`,lvl:"warn",title:`Hanya ${active} sumber aktif`,body:"Auto-search lebih tepat dengan sekurang-kurangnya 4–5 sumber.",act:"scroll",arg:"sources",label:"Pilih sumber"});
+  if(active<3) add(["discovery"],{id:`src-${active}`,lvl:"warn",title:t("Only {n} sources active",{n:active}),body:t("Auto-search works better with at least 4–5 sources."),act:"scroll",arg:"sources",label:t("Pick sources")});
   const noJd=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status)&&!j.jd).length;
-  if(noJd) add(["discovery"],{id:`nojd-${noJd}`,lvl:"info",title:`${noJd} job tiada JD penuh`,body:"Ranking dan tailoring kurang tepat tanpa JD. Paste dalam tab Notes.",act:null});
+  if(noJd) add(["discovery"],{id:`nojd-${noJd}`,lvl:"info",title:t("{n} jobs have no full JD",{n:noJd}),body:t("Ranking and tailoring are less accurate without a JD. Paste it in the Notes tab."),act:null});
   const r=S.profile?.resume||"";
-  if(r.length<600||r.includes("[ISI")) add(["today","discovery"],{id:"profile",lvl:"warn",title:"CV dalam sistem belum lengkap",body:"Ranking, auto-search dan resume semua bergantung pada CV penuh.",act:"view",arg:"settings",label:"Isi CV"});
-  if(S.jobs.some(j=>j.example)) add(["today"],{id:"examples",lvl:"info",title:"Ada job contoh dalam sistem",body:"Padam supaya angka KPI kau tepat.",act:"clearex",label:"Padam contoh"});
+  if(r.length<600||hasPlaceholder(r)) add(["today","discovery"],{id:"profile",lvl:"warn",title:t("Your CV in the system is incomplete"),body:t("Ranking, auto-search and resumes all depend on your full CV."),act:"view",arg:"settings",label:t("Add CV")});
+  if(S.jobs.some(j=>j.example)) add(["today"],{id:"examples",lvl:"info",title:t("There are example jobs in the system"),body:t("Delete them so your KPIs are accurate."),act:"clearex",label:t("Delete examples")});
   const dis=S.ui?.dismissed||{};
   const order={critical:0,warn:1,good:2,info:3};
   return out.filter(a=>!dis[a.id]).sort((a,b)=>order[a.lvl]-order[b.lvl]);
 }
-const LVL = {critical:"Penting",warn:"Perhatian",good:"Bagus",info:"Info"};
+const LVL = {critical:"Urgent",warn:"Attention",good:"Good news",info:"Info"};
 function alertsHtml(scope){
   const a=alertsFor(scope);
   if(!a.length) return "";
-  return `<section class="alerts" aria-label="Alerts">${a.map(x=>`<div class="alert ${x.lvl}"><span class="lvl">${LVL[x.lvl]}</span><div><b>${esc(x.title)}</b><span class="s">${esc(x.body)}</span></div><div class="acts">${x.act?`<button class="btn sm" data-act="alert" data-id="${esc(x.id)}" data-scope="${scope}">${esc(x.label)}</button>`:""}<button class="xs" data-act="dismiss-alert" data-id="${esc(x.id)}" aria-label="Tutup alert">×</button></div></div>`).join("")}</section>`;
+  return `<section class="alerts" aria-label="${t("Alerts")}">${a.map(x=>`<div class="alert ${x.lvl}"><span class="lvl">${t(LVL[x.lvl])}</span><div><b>${esc(x.title)}</b><span class="s">${esc(x.body)}</span></div><div class="acts">${x.act?`<button class="btn sm" data-act="alert" data-id="${esc(x.id)}" data-scope="${scope}">${esc(x.label)}</button>`:""}<button class="xs" data-act="dismiss-alert" data-id="${esc(x.id)}" aria-label="${t("Dismiss alert")}">×</button></div></div>`).join("")}</section>`;
 }
 async function doAlert(id,scope){
   const a=alertsFor(scope).find(x=>x.id===id); if(!a) return;
@@ -528,25 +551,25 @@ async function doAlert(id,scope){
   else if(a.act==="view") go(a.arg);
   else if(a.act==="run") runNow();
   else if(a.act==="scroll") document.getElementById("sec-"+a.arg)?.scrollIntoView({behavior:"smooth",block:"start"});
-  else if(a.act==="ghost"){ const j=S.jobs.find(x=>x.id===a.arg); if(j){ await setStatus(j,"rejected","Ditutup: ghosted"); toast("Ditanda rejected"); } }
-  else if(a.act==="clearex"){ for(const j of S.jobs.filter(j=>j.example)) await del("jobs",j.id); toast("Job contoh dipadam"); }
+  else if(a.act==="ghost"){ const j=S.jobs.find(x=>x.id===a.arg); if(j){ await setStatus(j,"rejected","Closed: ghosted"); toast(t("Marked rejected")); } }
+  else if(a.act==="clearex"){ for(const j of S.jobs.filter(j=>j.example)) await del("jobs",j.id); toast(t("Example jobs deleted")); }
 }
 
 // ---------- quests ----------
 function quests(){
   const p=S.profile||{}, s=S.settings||{}, rj=realJobs();
   return [
-    {id:"cv",t:"Paste CV penuh",d:"Settings & profile → CV (tanpa [ISI])",xp:50,done:(p.resume||"").length>=600&&!(p.resume||"").includes("[ISI"),go:"settings"},
-    {id:"target",t:"Set target role & lokasi",d:"Supaya auto-search tahu apa nak cari",xp:20,done:!!(p.targetRoles&&p.locations),go:"settings"},
-    {id:"sources",t:"Pilih sumber & work mode",d:"Discovery → Sumber",xp:20,done:!!s.touchedAt,go:"discovery"},
-    {id:"stories",t:"Tambah 3 cerita pencapaian",d:"Knowledge bank (AI boleh extract dari CV)",xp:40,done:S.stories.length>=3,go:"knowledge"},
-    {id:"rank",t:"Rank JD pertama",d:"Discovery → Paste JD",xp:30,done:rj.some(j=>j.origin==="manual"&&j.score!=null),go:"discovery"},
-    {id:"auto",t:"Auto-search berjaya sekali",d:"Monitoring → Run sekarang",xp:40,done:S.runs.some(r=>r.status==="succeeded"),go:"monitoring"},
-    {id:"tailor",t:"Jana resume tailored pertama",d:"Tailor & Prep",xp:40,done:rj.some(j=>j.tailored),go:"tailor"},
-    {id:"cover",t:"Jana cover letter pertama",d:"Tailor & Prep",xp:30,done:rj.some(j=>j.coverLetter),go:"tailor"},
-    {id:"apply",t:"Hantar application pertama",d:"Tanda 'Applied' pada mana-mana job",xp:50,done:rj.some(j=>j.appliedAt),go:"tracker"},
-    {id:"email",t:"Proses email recruiter pertama",d:"Approvals → Paste email",xp:30,done:S.approvals.some(a=>a.state==="approved"),go:"approvals"},
-    {id:"clean",t:"Padam job contoh",d:"Supaya KPI tepat",xp:10,done:!S.jobs.some(j=>j.example),go:"tracker"}
+    {id:"cv",t:"Paste your full CV",d:"Settings & profile → CV (no [FILL IN] left)",xp:50,done:(p.resume||"").length>=600&&!hasPlaceholder(p.resume),go:"settings"},
+    {id:"target",t:"Set target roles & locations",d:"So auto-search knows what to look for",xp:20,done:!!(p.targetRoles&&p.locations),go:"settings"},
+    {id:"sources",t:"Pick sources & work mode",d:"Discovery → Sources",xp:20,done:!!s.touchedAt,go:"discovery"},
+    {id:"stories",t:"Add 3 achievement stories",d:"Knowledge bank (AI can extract them from your CV)",xp:40,done:S.stories.length>=3,go:"knowledge"},
+    {id:"rank",t:"Rank your first JD",d:"Discovery → Paste a JD",xp:30,done:rj.some(j=>j.origin==="manual"&&j.score!=null),go:"discovery"},
+    {id:"auto",t:"Complete one auto-search",d:"Monitoring → Run now",xp:40,done:S.runs.some(r=>r.status==="succeeded"),go:"monitoring"},
+    {id:"tailor",t:"Generate your first tailored resume",d:"Tailor & Prep",xp:40,done:rj.some(j=>j.tailored),go:"tailor"},
+    {id:"cover",t:"Generate your first cover letter",d:"Tailor & Prep",xp:30,done:rj.some(j=>j.coverLetter),go:"tailor"},
+    {id:"apply",t:"Send your first application",d:"Mark any job as Applied",xp:50,done:rj.some(j=>j.appliedAt),go:"tracker"},
+    {id:"email",t:"Process your first recruiter email",d:"Approvals → Paste an email",xp:30,done:S.approvals.some(a=>a.state==="approved"),go:"approvals"},
+    {id:"clean",t:"Delete the example jobs",d:"So your KPIs are accurate",xp:10,done:!S.jobs.some(j=>j.example),go:"tracker"}
   ];
 }
 let questSaved="";
@@ -558,7 +581,7 @@ function questCheck(){
   questSaved=done.join();
   const init=!!S.ui?.questsInit;
   saveUi({quests:done,questsInit:true});
-  if(init){ const q=quests().find(q=>q.id===fresh[0]); toast(`Quest siap: ${q.t} · +${q.xp} XP`); confetti(); }
+  if(init){ const q=quests().find(q=>q.id===fresh[0]); toast(t("Quest complete: {q} · +{n} XP",{q:t(q.t),n:q.xp})); confetti(); }
 }
 function confetti(){
   if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -578,63 +601,67 @@ function stats(){
 }
 function kpiRow(){
   const st=stats();
-  return `<div class="kpis"><div class="kpi"><div class="v">${st.live}</div><div class="l">Application aktif</div></div><div class="kpi good"><div class="v">${st.replies}</div><div class="l">Replies</div></div><div class="kpi warn"><div class="v">${st.due}</div><div class="l">Follow-up due</div></div><div class="kpi info"><div class="v">${st.rate}%</div><div class="l">Response rate (${st.appliedEver} applied)</div></div></div>`;
+  return `<div class="kpis"><div class="kpi"><div class="v">${st.live}</div><div class="l">${t("Live applications")}</div></div><div class="kpi good"><div class="v">${st.replies}</div><div class="l">${t("Replies")}</div></div><div class="kpi warn"><div class="v">${st.due}</div><div class="l">${t("Follow-ups due")}</div></div><div class="kpi info"><div class="v">${st.rate}%</div><div class="l">${t("Response rate ({n} applied)",{n:st.appliedEver})}</div></div></div>`;
 }
-function head(t,sub,actions=""){
-  return `<div class="head"><div><h1>${t}</h1><p>${sub}</p></div><div class="row">${actions}<button class="btn" data-act="pal" title="Cari (Ctrl/⌘ K)">Cari <kbd>⌘K</kbd></button><button class="btn pri" data-act="newsearch">New search</button></div></div>`;
+function head(title,sub,actions=""){
+  return `<div class="head"><div><h1>${title}</h1><p>${sub}</p></div><div class="row">${actions}<button class="btn" data-act="pal" title="${t("Search (Ctrl/⌘ K)")}">${t("Search")} <kbd>⌘K</kbd></button><button class="btn pri" data-act="newsearch">${t("New search")}</button></div></div>`;
 }
-const exChip = j => j.example?'<span class="chip ex">contoh</span>':"";
-const newChip = j => isNew(j)?'<span class="chip new">baru</span>':"";
-const modeChip = j => j.workMode&&j.workMode!=="unknown"?`<span class="chip">${esc(MODES[j.workMode]||j.workMode)}</span>`:"";
+const exChip = j => j.example?`<span class="chip ex">${t("example")}</span>`:"";
+const newChip = j => isNew(j)?`<span class="chip new">${t("new")}</span>`:"";
+const modeChip = j => j.workMode&&j.workMode!=="unknown"?`<span class="chip">${esc(mdl(j.workMode))}</span>`:"";
+const companyOf = j => j.example ? String(j.company||"").replace(/^(Contoh|Example):\s*/,t("Example")+": ") : j.company;
 function jobItem(j,extra=""){
-  return `<button class="item" data-act="open" data-id="${j.id}"><span style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""}</span> ${newChip(j)}${modeChip(j)}${extra}${exChip(j)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></button>`;
+  return `<button class="item" data-act="open" data-id="${j.id}"><span style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(companyOf(j))}${j.location?" · "+esc(j.location):""}</span> ${newChip(j)}${modeChip(j)}${extra}${exChip(j)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></button>`;
 }
+const runLabel = r => runStuck(r)?t("stuck"):t({running:"running",succeeded:"succeeded",failed:"failed",skipped:"skipped"}[r.status]||r.status);
 function renderNav(){
   const st=stats(), al=alertsFor("today").length, nw=S.jobs.filter(isNew).length, pend=S.approvals.filter(a=>a.state==="pending").length;
   const tailorN=S.jobs.filter(j=>["shortlisted","applied","screening","interviewing"].includes(j.status)&&!(j.tailored&&j.coverLetter)).length;
   const qs=quests(), qd=qs.filter(q=>q.done).length;
   const c={overview:"",today:al?{v:al,hot:true}:"",discovery:nw?{v:nw,hot:true}:S.jobs.filter(j=>j.status==="discovered").length||"",tailor:tailorN||"",approvals:pend?{v:pend,hot:true}:"",tracker:st.live||"",monitoring:"",quest:qd===qs.length?"✓":`${qd}/${qs.length}`,knowledge:S.stories.length||"",settings:""};
-  const b=(list,el)=>{ $(el).innerHTML=list.map(([k,l])=>{ const n=c[k]; const hot=n&&n.hot; return `<button data-act="view" data-v="${k}" ${S.view===k?'aria-current="page"':""}><span>${l}</span><span class="n ${hot?"hot":""}">${hot?n.v:n}</span></button>`; }).join(""); };
+  const b=(list,el)=>{ $(el).innerHTML=list.map(([k,l])=>{ const n=c[k]; const hot=n&&n.hot; return `<button data-act="view" data-v="${k}" ${S.view===k?'aria-current="page"':""}><span>${t(l)}</span><span class="n ${hot?"hot":""}">${hot?n.v:n}</span></button>`; }).join(""); };
   b(NAV1,"#nav1"); b(NAV2,"#nav2");
-  $("#who").textContent=S.profile?.name||"Setup profile";
+  $("#nl1").textContent=t("Workspace"); $("#nl2").textContent=t("Setup");
+  document.querySelectorAll('[data-act="lang"]').forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.v===LANG)));
+  $("#who").textContent=S.profile?.name||t("Set up your profile");
   const s=ST(), lr=lastRun();
   const dot=lr?.status==="running"&&!runStuck(lr)?"run":lr?.status==="failed"||runStuck(lr)?"bad":s.autoEnabled?"on":"";
-  $("#sidefoot").innerHTML=`<b><span class="dot ${dot}"></span>Auto-search ${s.autoEnabled?"on":"off"}</b><span>${lr?`Run terakhir ${ago(lr.startedAt)} · ${esc(runLabel(lr))}`:"Belum pernah jalan"}</span><span>${s.autoEnabled?`Seterusnya ${fmtT(nextRunAt())}`:"Hanya run manual"}</span><b style="margin-top:4px"><span class="dot ${S.live?"on":""}"></span>${S.live?"Data disimpan":"Mod demo"}</b><b><span class="dot ${sample?"on":""}"></span>AI ${sample?"ready":"off"}</b>`;
+  $("#sidefoot").innerHTML=`<b><span class="dot ${dot}"></span>${t(s.autoEnabled?"Auto-search on":"Auto-search off")}</b><span>${lr?t("Last run {a} · {s}",{a:ago(lr.startedAt),s:runLabel(lr)}):t("Never run yet")}</span><span>${s.autoEnabled?t("Next {d}",{d:fmtT(nextRunAt())}):t("Manual runs only")}</span><b style="margin-top:4px"><span class="dot ${S.live?"on":""}"></span>${t(S.live?"Data saved":"Demo mode")}</b><b><span class="dot ${sample?"on":""}"></span>${t(sample?"AI ready":"AI off")}</b>`;
 }
-const runLabel = r => runStuck(r)?"tersangkut":{running:"tengah jalan",succeeded:"berjaya",failed:"gagal",skipped:"dilangkau"}[r.status]||r.status;
 
 // ---------- views ----------
 function vOverview(){
   const jobs=realJobs().length?realJobs():S.jobs;
-  const stages=[["Ditemui",0],["Shortlisted",1],["Applied",2],["Dapat reply",3],["Screening",4],["Interview",5],["Offer",6]];
-  const counts=stages.map(([l,r])=>[l,jobs.filter(j=>rank(j)>=r).length]);
+  const stages=[["Found",0],["Shortlisted",1],["Applied",2],["Got a reply",3],["Screening",4],["Interview",5],["Offer",6]];
+  const counts=stages.map(([l,r])=>[t(l),jobs.filter(j=>rank(j)>=r).length]);
   const max=Math.max(1,counts[0][1]);
   const wk=[]; const startW=(()=>{const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.getTime();})();
   for(let i=7;i>=0;i--){ const a=startW-i*7*DAY, b=a+7*DAY; wk.push({a,n:jobs.filter(j=>j.appliedAt>=a&&j.appliedAt<b).length}); }
   const wmax=Math.max(4,...wk.map(w=>w.n)); const top=Math.ceil(wmax/4)*4;
-  const bySrc={}; for(const j of jobs){ const k=j.source||"Lain-lain"; const o=bySrc[k]||(bySrc[k]={n:0,ap:0,rep:0,sc:0,scn:0}); o.n++; if(j.appliedAt){o.ap++; if(REPLIED.includes(j.status))o.rep++;} if(j.score!=null){o.sc+=j.score;o.scn++;} }
+  const bySrc={}; for(const j of jobs){ const k=j.source||t("Other"); const o=bySrc[k]||(bySrc[k]={n:0,ap:0,rep:0,sc:0,scn:0}); o.n++; if(j.appliedAt){o.ap++; if(REPLIED.includes(j.status))o.rep++;} if(j.score!=null){o.sc+=j.score;o.scn++;} }
   const srcRows=Object.entries(bySrc).sort((a,b)=>b[1].n-a[1].n);
   const qs=quests(), xp=qs.filter(q=>q.done).reduce((a,q)=>a+q.xp,0), tot=qs.reduce((a,q)=>a+q.xp,0);
-  return head("Overview",`Gambaran besar pencarian kerja kau${realJobs().length?"":" (guna job contoh)"}`)+kpiRow()+
-  (xp<tot?`<button class="item" data-act="view" data-v="quest" style="margin-bottom:16px"><span style="flex:1;min-width:0"><span class="t">Setup quest: ${qs.filter(q=>q.done).length}/${qs.length} siap · ${xp}/${tot} XP</span><div class="meter"><i style="width:${Math.round(xp/tot*100)}%"></i></div></span><span class="chip due">Sambung →</span></button>`:"")+
-  `<div class="grid2e"><div class="panel"><h2>Funnel <small>berapa job sampai setiap peringkat</small></h2><div class="funnel">${counts.map(([l,n],i)=>`<div class="frow" data-tip="${esc(l)}: ${n} job${i?` (${Math.round(n/Math.max(1,counts[i-1][1])*100)}% dari peringkat sebelum)`:""}"><span>${l}</span><span class="bar"><i style="width:${n/max*100}%"></i></span><span class="v">${n}</span></div>`).join("")}</div></div>
-  <div class="panel"><h2>Application seminggu <small>8 minggu terakhir</small></h2><div style="display:grid;grid-template-columns:24px minmax(0,1fr);gap:6px"><div style="display:flex;flex-direction:column;justify-content:space-between;height:150px;font-size:10.5px;color:var(--muted);font-family:var(--mono);text-align:right">${[top,top*.75,top/2,top/4,0].map(v=>`<span>${v}</span>`).join("")}</div><div><div class="vbars">${wk.map(w=>`<div class="b" style="height:${w.n/top*100}%" data-tip="Minggu ${fmt(w.a)}: ${w.n} application"></div>`).join("")}</div><div class="vlabels">${wk.map(w=>`<span>${fmt(w.a).split(" ")[0]}/${new Date(w.a).getMonth()+1}</span>`).join("")}</div></div></div></div></div>
-  <div class="panel" style="margin-top:16px"><h2>Prestasi ikut sumber</h2><div class="tblwrap"><table><thead><tr><th>Sumber</th><th class="num">Job</th><th class="num">Applied</th><th class="num">Reply</th><th class="num">Response</th><th class="num">Purata fit</th></tr></thead><tbody>${srcRows.map(([k,o])=>`<tr><td>${esc(k)}</td><td class="num">${o.n}</td><td class="num">${o.ap}</td><td class="num">${o.rep}</td><td class="num">${o.ap?Math.round(o.rep/o.ap*100)+"%":"–"}</td><td class="num">${o.scn?Math.round(o.sc/o.scn):"–"}</td></tr>`).join("")||`<tr><td colspan="6" class="hint">Belum ada data.</td></tr>`}</tbody></table></div></div>`;
+  return head(t("Overview"),realJobs().length?t("The big picture of your job search"):t("The big picture of your job search (using example jobs)"))+kpiRow()+
+  (xp<tot?`<button class="item" data-act="view" data-v="quest" style="margin-bottom:16px"><span style="flex:1;min-width:0"><span class="t">${t("Setup quest: {d}/{n} done · {x}/{tx} XP",{d:qs.filter(q=>q.done).length,n:qs.length,x:xp,tx:tot})}</span><div class="meter"><i style="width:${Math.round(xp/tot*100)}%"></i></div></span><span class="chip due">${t("Continue →")}</span></button>`:"")+
+  `<div class="grid2e"><div class="panel"><h2>${t("Funnel")} <small>${t("how many jobs reached each stage")}</small></h2><div class="funnel">${counts.map(([l,n],i)=>`<div class="frow" data-tip="${esc(i?t("{l}: {n} jobs ({p}% of the previous stage)",{l,n,p:Math.round(n/Math.max(1,counts[i-1][1])*100)}):t("{l}: {n} jobs",{l,n}))}"><span>${l}</span><span class="bar"><i style="width:${n/max*100}%"></i></span><span class="v">${n}</span></div>`).join("")}</div></div>
+  <div class="panel"><h2>${t("Applications per week")} <small>${t("last 8 weeks")}</small></h2><div style="display:grid;grid-template-columns:24px minmax(0,1fr);gap:6px"><div style="display:flex;flex-direction:column;justify-content:space-between;height:150px;font-size:10.5px;color:var(--muted);font-family:var(--mono);text-align:right">${[top,top*.75,top/2,top/4,0].map(v=>`<span>${v}</span>`).join("")}</div><div><div class="vbars">${wk.map(w=>`<div class="b" style="height:${w.n/top*100}%" data-tip="${esc(t("Week of {d}: {n} applications",{d:fmt(w.a),n:w.n}))}"></div>`).join("")}</div><div class="vlabels">${wk.map(w=>`<span>${new Date(w.a).getDate()}/${new Date(w.a).getMonth()+1}</span>`).join("")}</div></div></div></div></div>
+  <div class="panel" style="margin-top:16px"><h2>${t("Performance by source")}</h2><div class="tblwrap"><table><thead><tr><th>${t("Source")}</th><th class="num">${t("Jobs")}</th><th class="num">${t("Applied")}</th><th class="num">${t("Replies")}</th><th class="num">${t("Response")}</th><th class="num">${t("Avg fit")}</th></tr></thead><tbody>${srcRows.map(([k,o])=>`<tr><td>${esc(k)}</td><td class="num">${o.n}</td><td class="num">${o.ap}</td><td class="num">${o.rep}</td><td class="num">${o.ap?Math.round(o.rep/o.ap*100)+"%":"–"}</td><td class="num">${o.scn?Math.round(o.sc/o.scn):"–"}</td></tr>`).join("")||`<tr><td colspan="6" class="hint">${t("No data yet.")}</td></tr>`}</tbody></table></div></div>`;
 }
 function vToday(){
   const st=stats();
   const due=S.jobs.filter(isDue).sort((a,b)=>a.followUpAt-b.followUpAt);
   const up=S.jobs.filter(j=>j.eventAt&&j.eventAt>Date.now()-6*36e5).sort((a,b)=>a.eventAt-b.eventAt).slice(0,5);
   const best=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status)).sort((a,b)=>(isNew(b)-isNew(a))||((b.score||0)-(a.score||0))).slice(0,6);
-  const d=new Date().toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long"});
-  return head("Today",`${d} · ${st.live} application aktif · ${st.due} follow-up due`)+alertsHtml("today")+
+  const d=new Date().toLocaleDateString(LOCALE(),{weekday:"long",day:"numeric",month:"long"});
+  return head(t("Today"),t("{d} · {l} live applications · {f} follow-ups due",{d,l:st.live,f:st.due}))+alertsHtml("today")+
   `<div class="grid2"><div class="stack">
-    <div class="panel" id="sec-due"><h2>Follow-up hari ni <small>${ST().followDays} hari lepas apply, tiada reply</small></h2>
-      <div class="list">${due.length?due.map(j=>`<div class="item"><button class="linkish" data-act="open" data-id="${j.id}" style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)} · apply ${fmt(j.appliedAt)}</span></button><button class="btn sm ok" data-act="followed" data-id="${j.id}">Dah follow-up</button></div>`).join(""):`<div class="empty">Tiada follow-up due. Bagus.</div>`}</div></div>
-    <div class="panel"><h2>Interview & tarikh penting</h2><div class="list">${up.length?up.map(j=>jobItem(j,`<span class="chip info">${fmtT(j.eventAt)}</span>`)).join(""):`<div class="empty">Tiada tarikh. Set tarikh interview dalam drawer job (tab Fit).</div>`}</div></div>
+    <div class="panel" id="sec-due"><h2>${t("Follow-ups today")} <small>${t("{n} days after applying, no reply",{n:ST().followDays})}</small></h2>
+      <div class="list">${due.length?due.map(j=>`<div class="item"><button class="linkish" data-act="open" data-id="${j.id}" style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(companyOf(j))} · ${t("applied {d}",{d:fmt(j.appliedAt)})}</span></button><button class="btn sm ok" data-act="followed" data-id="${j.id}">${t("Followed up")}</button></div>`).join(""):`<div class="empty">${t("No follow-ups due. Nice.")}</div>`}</div></div>
+    <div class="panel"><h2>${t("Interviews & key dates")}</h2><div class="list">${up.length?up.map(j=>jobItem(j,`<span class="chip info">${fmtT(j.eventAt)}</span>`)).join(""):`<div class="empty">${t("No dates yet. Set an interview date in the job drawer (Fit tab).")}</div>`}</div></div>
   </div>
-  <div class="panel"><h2>Match terbaik belum apply</h2><div class="list">${best.length?best.map(j=>jobItem(j)).join(""):`<div class="empty">Belum ada job. Pergi Discovery.</div>`}</div></div></div>`;
+  <div class="panel"><h2>${t("Best matches not applied yet")}</h2><div class="list">${best.length?best.map(j=>jobItem(j)).join(""):`<div class="empty">${t("No jobs yet. Go to Discovery.")}</div>`}</div></div></div>`;
 }
+const verdictColor = v => v==="apply"?"var(--green)":v==="skip"?"var(--red)":"var(--gold-ink)";
 function vDiscovery(){
   const s=ST(), lr=lastRun(), f=S.df;
   let list=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status));
@@ -647,51 +674,52 @@ function vDiscovery(){
   const plan=S.plan?.items;
   const enabled=s.sources.filter(id=>SRC[id]);
   const running=lr?.status==="running"&&!runStuck(lr);
-  return head("Discovery","Auto-search cari setiap pagi. Kau pun boleh cari manual dan paste JD.")+alertsHtml("discovery")+
-  `<div class="autobar"><div><b><span class="dot ${running?"run":s.autoEnabled?"on":""}"></span>${running?"Auto-search tengah jalan…":`Auto-search ${s.autoEnabled?"aktif":"off"}`}</b><p>${enabled.filter(id=>!SRC[id].linkOnly).length} sumber · ${MODES[s.workMode]} · ${lr?`run terakhir ${ago(lr.startedAt)} (${esc(runLabel(lr))}${lr.added!=null?`, +${lr.added} job`:""})`:"belum pernah jalan"}${s.autoEnabled?` · seterusnya ${fmtT(nextRunAt())}`:""}</p></div>
-   <div class="row"><label class="switch"><input type="checkbox" id="autoEnabled" ${s.autoEnabled?"checked":""}> Harian</label><button class="btn pri" data-act="run" ${S.busy.run||running?"disabled":""}>${S.busy.run?"Memulakan…":running?"Tengah jalan":"Run sekarang"}</button></div></div>
-  <div class="panel" id="sec-sources" style="margin-bottom:16px"><h2>Sumber & penapis <small>${enabled.length} dipilih</small><span class="sp row"><label class="f" for="workMode" style="flex-direction:row;align-items:center;gap:8px">Work mode <select id="workMode" class="inl">${Object.entries(MODES).map(([k,l])=>`<option value="${k}" ${s.workMode===k?"selected":""}>${k==="any"?"Semua (onsite/hybrid/remote)":l}</option>`).join("")}</select></label></span></h2>
-   ${groups.map(gk=>`<div class="srcgroup">${gk}</div><div class="srcgrid">${SOURCES.filter(x=>x.kind===gk).map(x=>`<label class="src"><input type="checkbox" data-src="${x.id}" ${s.sources.includes(x.id)?"checked":""}><span><b>${esc(x.name)}</b><small>${esc(x.note)}</small></span></label>`).join("")}</div>`).join("")}
-   <div class="form" style="margin-top:14px"><label class="f full" for="extraKeywords">Keyword tambahan (optional)<input class="input" id="extraKeywords" data-draft="extraKeywords" value="${esc(S.drafts.extraKeywords??s.extraKeywords)}" placeholder="cth: fintech, B2B, Meta Ads, bahasa Mandarin tak perlu"></label></div>
-   <div class="row" style="margin-top:10px"><button class="btn sm" data-act="savekw">Simpan keyword</button><span class="hint" style="margin:0">Auto-search guna sumber, work mode dan keyword ni.</span></div></div>
+  const status=lr?t("last run {a} ({s}{n})",{a:ago(lr.startedAt),s:runLabel(lr),n:lr.added!=null?t(", +{n} jobs",{n:lr.added}):""}):t("never run yet");
+  return head(t("Discovery"),t("Auto-search runs every morning. You can also search manually and paste a JD."))+alertsHtml("discovery")+
+  `<div class="autobar"><div><b><span class="dot ${running?"run":s.autoEnabled?"on":""}"></span>${running?t("Auto-search is running…"):t(s.autoEnabled?"Auto-search is on":"Auto-search is off")}</b><p>${t("{n} sources",{n:enabled.filter(id=>!SRC[id].linkOnly).length})} · ${mdl(s.workMode)} · ${status}${s.autoEnabled?" · "+t("next {d}",{d:fmtT(nextRunAt())}):""}</p></div>
+   <div class="row"><label class="switch"><input type="checkbox" id="autoEnabled" ${s.autoEnabled?"checked":""}> ${t("Daily")}</label><button class="btn pri" data-act="run" ${S.busy.run||running?"disabled":""}>${S.busy.run?t("Starting…"):running?t("Running"):t("Run now")}</button></div></div>
+  <div class="panel" id="sec-sources" style="margin-bottom:16px"><h2>${t("Sources & filters")} <small>${t("{n} selected",{n:enabled.length})}</small><span class="sp row"><label class="f" for="workMode" style="flex-direction:row;align-items:center;gap:8px">${t("Work mode")} <select id="workMode" class="inl">${Object.keys(MODES).map(k=>`<option value="${k}" ${s.workMode===k?"selected":""}>${k==="any"?t("Any (onsite/hybrid/remote)"):mdl(k)}</option>`).join("")}</select></label></span></h2>
+   ${groups.map(gk=>`<div class="srcgroup">${t(gk)}</div><div class="srcgrid">${SOURCES.filter(x=>x.kind===gk).map(x=>`<label class="src"><input type="checkbox" data-src="${x.id}" ${s.sources.includes(x.id)?"checked":""}><span><b>${esc(t(x.name))}</b><small>${esc(t(x.note))}</small></span></label>`).join("")}</div>`).join("")}
+   <div class="form" style="margin-top:14px"><label class="f full" for="extraKeywords">${t("Extra keywords (optional)")}<input class="input" id="extraKeywords" data-draft="extraKeywords" value="${esc(S.drafts.extraKeywords??s.extraKeywords)}" placeholder="${t("e.g. fintech, B2B, Meta Ads")}"></label></div>
+   <div class="row" style="margin-top:10px"><button class="btn sm" data-act="savekw">${t("Save keywords")}</button><span class="hint" style="margin:0">${t("Auto-search uses these sources, work mode and keywords.")}</span></div></div>
   <div class="grid2e" style="margin-bottom:16px">
-   <div class="panel"><h2>Cari manual <small>link terus ke sumber yang dipilih</small><span class="sp"><button class="btn sm" data-act="plan" ${S.busy.plan?"disabled":""}>${S.busy.plan?"AI tengah fikir…":plan?"Jana semula":"Jana search plan"}</button></span></h2>
-    <div class="list">${plan?plan.map(q=>`<div class="q"><b>${esc(q.query)}</b> <span class="chip">${esc(q.location)}</span><p>${esc(q.why)}</p><div class="links">${enabled.map(id=>`<a href="${esc(SRC[id].url(q.query,q.location,s.workMode))}" target="_blank" rel="noopener">${esc(SRC[id].name)} ↗</a>`).join("")}</div></div>`).join(""):`<div class="empty">AI baca CV kau dan bagi 6 search query, dengan link ke setiap sumber yang kau pilih.</div>`}</div></div>
-   <div class="panel"><h2>Paste JD, AI rank</h2>
-    <label class="f" for="jd">Job description penuh<textarea id="jd" data-draft="jd" rows="8" placeholder="Copy semua teks iklan kerja dan paste sini…">${esc(S.drafts.jd||"")}</textarea></label>
-    <div class="form" style="margin-top:10px"><label class="f" for="jdUrl">Link iklan<input class="input" id="jdUrl" data-draft="jdUrl" value="${esc(S.drafts.jdUrl||"")}" placeholder="https://…"></label>
-    <label class="f" for="jdSource">Sumber<select id="jdSource" data-draft="jdSource">${SOURCES.map(x=>`<option value="${x.id}" ${S.drafts.jdSource===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}<option value="referral" ${S.drafts.jdSource==="referral"?"selected":""}>Referral</option></select></label></div>
-    <div class="row" style="margin-top:12px"><button class="btn pri" data-act="import" ${S.busy.rank?"disabled":""}>${S.busy.rank?"Tengah rank…":"Rank & simpan"}</button><span class="hint" style="margin:0">Score 75+ terus Shortlisted.</span></div></div></div>
-  <div class="panel"><h2>Hasil carian <small>${list.length} job</small></h2>
-   <div class="toolbar"><select id="df_src" class="inl" aria-label="Sumber"><option value="all">Semua sumber</option>${SOURCES.map(x=>`<option value="${x.id}" ${f.src===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
-   <select id="df_mode" class="inl" aria-label="Work mode"><option value="all">Semua mode</option>${["onsite","hybrid","remote"].map(k=>`<option value="${k}" ${f.mode===k?"selected":""}>${MODES[k]}</option>`).join("")}</select>
-   <select id="df_min" class="inl" aria-label="Fit minimum"><option value="0">Semua fit</option>${[60,75,85].map(n=>`<option value="${n}" ${f.min==n?"selected":""}>Fit ${n}+</option>`).join("")}</select>
-   <div class="seg" role="group" aria-label="Papar"><button data-act="dfshow" data-v="all" aria-pressed="${f.show==="all"}">Semua</button><button data-act="dfshow" data-v="new" aria-pressed="${f.show==="new"}">Baru je</button></div></div>
-   <div class="list">${list.length?list.map(j=>`<div class="item"><span style="min-width:0;flex:1"><button class="linkish" data-act="open" data-id="${j.id}"><span class="t">${esc(j.title)}</span></button><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""} · ${esc(j.source||"")}${j.postedAt?" · "+esc(j.postedAt):""}</span> ${newChip(j)}${modeChip(j)}${j.origin==="auto"?'<span class="chip info">auto</span>':""}${exChip(j)} <span class="verdict" style="color:${j.verdict==="apply"?"var(--green)":j.verdict==="skip"?"var(--red)":"var(--gold-ink)"}">${esc(j.verdict||"")}</span></span><span class="row"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span>${j.status==="discovered"?`<button class="btn sm" data-act="status" data-id="${j.id}" data-s="shortlisted">Shortlist</button><button class="xs" data-act="status" data-id="${j.id}" data-s="rejected" aria-label="Buang" title="Tak berminat">×</button>`:`<span class="chip good">Shortlisted</span>`}</span></div>`).join(""):`<div class="empty">Tiada job padan penapis ni.</div>`}</div></div>`;
+   <div class="panel"><h2>${t("Manual search")} <small>${t("direct links to your selected sources")}</small><span class="sp"><button class="btn sm" data-act="plan" ${S.busy.plan?"disabled":""}>${S.busy.plan?t("AI is thinking…"):plan?t("Regenerate"):t("Generate search plan")}</button></span></h2>
+    <div class="list">${plan?plan.map(q=>`<div class="q"><b>${esc(q.query)}</b> <span class="chip">${esc(q.location)}</span><p>${esc(q.why)}</p><div class="links">${enabled.map(id=>`<a href="${esc(SRC[id].url(q.query,q.location,s.workMode))}" target="_blank" rel="noopener">${esc(t(SRC[id].name))} ↗</a>`).join("")}</div></div>`).join(""):`<div class="empty">${t("AI reads your CV and suggests 6 search queries, with links to every source you picked.")}</div>`}</div></div>
+   <div class="panel"><h2>${t("Paste a JD, AI ranks it")}</h2>
+    <label class="f" for="jd">${t("Full job description")}<textarea id="jd" data-draft="jd" rows="8" placeholder="${t("Copy the whole job ad and paste it here…")}">${esc(S.drafts.jd||"")}</textarea></label>
+    <div class="form" style="margin-top:10px"><label class="f" for="jdUrl">${t("Job ad link")}<input class="input" id="jdUrl" data-draft="jdUrl" value="${esc(S.drafts.jdUrl||"")}" placeholder="https://…"></label>
+    <label class="f" for="jdSource">${t("Source")}<select id="jdSource" data-draft="jdSource">${SOURCES.map(x=>`<option value="${x.id}" ${S.drafts.jdSource===x.id?"selected":""}>${esc(t(x.name))}</option>`).join("")}<option value="referral" ${S.drafts.jdSource==="referral"?"selected":""}>${t("Referral")}</option></select></label></div>
+    <div class="row" style="margin-top:12px"><button class="btn pri" data-act="import" ${S.busy.rank?"disabled":""}>${S.busy.rank?t("Ranking…"):t("Rank & save")}</button><span class="hint" style="margin:0">${t("75+ goes straight to Shortlisted.")}</span></div></div></div>
+  <div class="panel"><h2>${t("Search results")} <small>${t("{n} jobs",{n:list.length})}</small></h2>
+   <div class="toolbar"><select id="df_src" class="inl" aria-label="${t("Source")}"><option value="all">${t("All sources")}</option>${SOURCES.map(x=>`<option value="${x.id}" ${f.src===x.id?"selected":""}>${esc(t(x.name))}</option>`).join("")}</select>
+   <select id="df_mode" class="inl" aria-label="${t("Work mode")}"><option value="all">${t("All modes")}</option>${["onsite","hybrid","remote"].map(k=>`<option value="${k}" ${f.mode===k?"selected":""}>${mdl(k)}</option>`).join("")}</select>
+   <select id="df_min" class="inl" aria-label="${t("Minimum fit")}"><option value="0">${t("Any fit")}</option>${[60,75,85].map(n=>`<option value="${n}" ${f.min==n?"selected":""}>${t("Fit {n}+",{n})}</option>`).join("")}</select>
+   <div class="seg" role="group" aria-label="${t("Show")}"><button data-act="dfshow" data-v="all" aria-pressed="${f.show==="all"}">${t("All")}</button><button data-act="dfshow" data-v="new" aria-pressed="${f.show==="new"}">${t("New only")}</button></div></div>
+   <div class="list">${list.length?list.map(j=>`<div class="item"><span style="min-width:0;flex:1"><button class="linkish" data-act="open" data-id="${j.id}"><span class="t">${esc(j.title)}</span></button><br><span class="s">${esc(companyOf(j))}${j.location?" · "+esc(j.location):""} · ${esc(j.source||"")}${j.postedAt?" · "+esc(j.postedAt):""}</span> ${newChip(j)}${modeChip(j)}${j.origin==="auto"?`<span class="chip info">${t("auto")}</span>`:""}${exChip(j)} <span class="verdict" style="color:${verdictColor(j.verdict)}">${esc(t(j.verdict||""))}</span></span><span class="row"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span>${j.status==="discovered"?`<button class="btn sm" data-act="status" data-id="${j.id}" data-s="shortlisted">${t("Shortlist")}</button><button class="xs" data-act="status" data-id="${j.id}" data-s="rejected" aria-label="${t("Not interested")}" title="${t("Not interested")}">×</button>`:`<span class="chip good">${stl("shortlisted")}</span>`}</span></div>`).join(""):`<div class="empty">${t("No jobs match these filters.")}</div>`}</div></div>`;
 }
 function vTailor(){
   const order={interviewing:0,screening:1,shortlisted:2,applied:3,acknowledged:4,offer:5};
   const jobs=S.jobs.filter(j=>j.status in order).sort((a,b)=>order[a.status]-order[b.status]||(b.score||0)-(a.score||0));
-  const ck=(ok,l,j,t)=>`<button class="chip ${ok?"good":""}" data-act="open" data-id="${j.id}" data-tab="${t}" style="border:none;cursor:pointer">${ok?"✓":"+"} ${l}</button>`;
+  const ck=(ok,l,j,tb)=>`<button class="chip ${ok?"good":""}" data-act="open" data-id="${j.id}" data-tab="${tb}" style="border:none;cursor:pointer">${ok?"✓":"+"} ${t(l)}</button>`;
   const next=jobs.find(j=>j.status==="shortlisted"&&!j.tailored)||jobs.find(j=>["screening","interviewing"].includes(j.status)&&!j.prep);
-  return head("Tailor & Prep","Resume, cover letter dan interview prep untuk setiap job, dalam satu tempat.")+
-  (next?`<div class="propose" style="margin-bottom:16px"><b>Seterusnya: ${esc(next.title)} · ${esc(next.company)}</b>${next.status==="shortlisted"?"Shortlisted tapi belum ada resume tailored.":"Interview datang, prep sheet belum ada."}<div class="row" style="margin-top:8px"><button class="btn pri sm" data-act="open" data-id="${next.id}" data-tab="${next.status==="shortlisted"?"resume":"prep"}">${next.status==="shortlisted"?"Jana resume":"Jana prep"}</button></div></div>`:"")+
-  `<div class="panel"><div class="tblwrap"><table><thead><tr><th>Job</th><th>Status</th><th class="num">Fit</th><th>Dokumen</th></tr></thead><tbody>${jobs.map(j=>`<tr><td><button class="linkish" data-act="open" data-id="${j.id}"><span class="t" style="font-weight:600">${esc(j.title)}</span></button><br><span class="hint" style="margin:0">${esc(j.company)}</span> ${exChip(j)}</td><td><span class="chip"><span class="sdot" style="background:${SL[j.status].c}"></span>${SL[j.status].l}</span></td><td class="num"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></td><td><div class="row" style="gap:6px">${ck(j.tailored,"Resume",j,"resume")}${ck(j.coverLetter,"Cover letter",j,"cover")}${ck(j.prep,"Prep",j,"prep")}</div></td></tr>`).join("")||`<tr><td colspan="4"><div class="empty">Shortlist job dulu di Discovery.</div></td></tr>`}</tbody></table></div></div>`;
+  return head(t("Tailor & Prep"),t("Resume, cover letter and interview prep for every job, in one place."))+
+  (next?`<div class="propose" style="margin-bottom:16px"><b>${t("Next up: {r} · {c}",{r:esc(next.title),c:esc(companyOf(next))})}</b>${t(next.status==="shortlisted"?"Shortlisted but no tailored resume yet.":"Interview coming up, no prep sheet yet.")}<div class="row" style="margin-top:8px"><button class="btn pri sm" data-act="open" data-id="${next.id}" data-tab="${next.status==="shortlisted"?"resume":"prep"}">${t(next.status==="shortlisted"?"Generate resume":"Generate prep")}</button></div></div>`:"")+
+  `<div class="panel"><div class="tblwrap"><table><thead><tr><th>${t("Job")}</th><th>${t("Status")}</th><th class="num">${t("Fit")}</th><th>${t("Documents")}</th></tr></thead><tbody>${jobs.map(j=>`<tr><td><button class="linkish" data-act="open" data-id="${j.id}"><span class="t" style="font-weight:600">${esc(j.title)}</span></button><br><span class="hint" style="margin:0">${esc(companyOf(j))}</span> ${exChip(j)}</td><td><span class="chip"><span class="sdot" style="background:${SL[j.status].c}"></span>${stl(j.status)}</span></td><td class="num"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></td><td><div class="row" style="gap:6px">${ck(j.tailored,"Resume",j,"resume")}${ck(j.coverLetter,"Cover letter",j,"cover")}${ck(j.prep,"Prep",j,"prep")}</div></td></tr>`).join("")||`<tr><td colspan="4"><div class="empty">${t("Shortlist a job in Discovery first.")}</div></td></tr>`}</tbody></table></div></div>`;
 }
 function vApprovals(){
   const pend=S.approvals.filter(a=>a.state==="pending").sort((a,b)=>b.createdAt-a.createdAt);
   const done=S.approvals.filter(a=>a.state!=="pending").sort((a,b)=>(b.decidedAt||0)-(a.decidedAt||0)).slice(0,10);
   const card=a=>{ const j=S.jobs.find(x=>x.id===a.jobId); const c=Math.round((a.confidence||0)*100);
-    return `<div class="propose"><b>${esc(j?`${j.title} · ${j.company}`:`Job baru: ${a.role||"?"} · ${a.company||"?"}`)}</b>${j?`<span class="chip">${SL[j.status].l}</span> → `:""}<span class="chip info">${esc(SL[a.newStatus]?.l||a.newStatus)}</span>
-    <p style="margin:8px 0 4px">${esc(a.summary)}</p><p style="margin:0;font-size:12.5px"><b style="display:inline">Next:</b> ${esc(a.nextAction)}${a.eventDate?` · <b style="display:inline">Tarikh:</b> ${esc(isNaN(Date.parse(a.eventDate))?a.eventDate:fmtT(Date.parse(a.eventDate)))}`:""}</p>
-    <div class="meter" data-tip="Confidence AI ${c}%"><i style="width:${c}%;${c<80?"background:var(--gold-deep)":""}"></i></div><p class="hint">Confidence ${c}%${c<80?" · rendah, semak betul-betul":""} · ${ago(a.createdAt)}</p>
-    <div class="row" style="margin-top:8px"><button class="btn ok sm" data-act="approve" data-id="${a.id}">${j?"Approve":"Tambah job baru"}</button><button class="btn sm" data-act="reject-appr" data-id="${a.id}">Abaikan</button></div></div>`; };
-  return head("Approvals","Semua cadangan AI tunggu kelulusan kau sebelum mengubah apa-apa.")+
-  `<div class="banner">Paste email secara manual buat masa ni. Versi Vercel nanti guna Google Apps Script untuk baca Gmail sendiri dan hantar cadangan ke sini.</div>
-  <div class="grid2e"><div class="panel"><h2>Inbox: paste email</h2><label class="f" for="email">Subject + isi email<textarea id="email" data-draft="email" rows="11" placeholder="From: talent@company.com&#10;Subject: Interview invitation – Marketing Lead&#10;&#10;Hi Kamal, …">${esc(S.drafts.email||"")}</textarea></label>
-   <div class="row" style="margin-top:12px"><button class="btn pri" data-act="email" ${S.busy.email?"disabled":""}>${S.busy.email?"AI tengah baca…":"Baca email"}</button></div></div>
-  <div class="panel"><h2>Tunggu approval <small>${pend.length}</small></h2><div class="list">${pend.length?pend.map(card).join(""):`<div class="empty">Tiada apa-apa tunggu approval.</div>`}</div>
-  ${done.length?`<h2 style="margin-top:18px">Keputusan terkini</h2><ul class="timeline">${done.map(a=>`<li><time>${fmt(a.decidedAt)}</time><span>${a.state==="approved"?"✓":"✕"} ${esc(a.company||"")} → ${esc(SL[a.newStatus]?.l||"")}: ${esc(a.summary)}</span></li>`).join("")}</ul>`:""}</div></div>`;
+    return `<div class="propose"><b>${esc(j?`${j.title} · ${companyOf(j)}`:t("New job: {r} · {c}",{r:a.role||"?",c:a.company||"?"}))}</b>${j?`<span class="chip">${stl(j.status)}</span> → `:""}<span class="chip info">${esc(stl(a.newStatus))}</span>
+    <p style="margin:8px 0 4px">${esc(a.summary)}</p><p style="margin:0;font-size:12.5px"><b style="display:inline">${t("Next:")}</b> ${esc(a.nextAction)}${a.eventDate?` · <b style="display:inline">${t("Date:")}</b> ${esc(isNaN(Date.parse(a.eventDate))?a.eventDate:fmtT(Date.parse(a.eventDate)))}`:""}</p>
+    <div class="meter" data-tip="${esc(t("AI confidence {c}%",{c}))}"><i style="width:${c}%;${c<80?"background:var(--gold-deep)":""}"></i></div><p class="hint">${t("Confidence {c}%",{c})}${c<80?" · "+t("low, check carefully"):""} · ${ago(a.createdAt)}</p>
+    <div class="row" style="margin-top:8px"><button class="btn ok sm" data-act="approve" data-id="${a.id}">${t(j?"Approve":"Add as new job")}</button><button class="btn sm" data-act="reject-appr" data-id="${a.id}">${t("Ignore")}</button></div></div>`; };
+  return head(t("Approvals"),t("Every AI suggestion waits for your approval before anything changes."))+
+  `<div class="banner">${t("For now, paste emails manually. The Vercel version will use Google Apps Script to read Gmail on its own and send suggestions here.")}</div>
+  <div class="grid2e"><div class="panel"><h2>${t("Inbox: paste an email")}</h2><label class="f" for="email">${t("Subject + email body")}<textarea id="email" data-draft="email" rows="11" placeholder="From: talent@company.com&#10;Subject: Interview invitation – Marketing Lead&#10;&#10;Hi Kamal, …">${esc(S.drafts.email||"")}</textarea></label>
+   <div class="row" style="margin-top:12px"><button class="btn pri" data-act="email" ${S.busy.email?"disabled":""}>${S.busy.email?t("AI is reading…"):t("Read email")}</button></div></div>
+  <div class="panel"><h2>${t("Waiting for approval")} <small>${pend.length}</small></h2><div class="list">${pend.length?pend.map(card).join(""):`<div class="empty">${t("Nothing is waiting for approval.")}</div>`}</div>
+  ${done.length?`<h2 style="margin-top:18px">${t("Recent decisions")}</h2><ul class="timeline">${done.map(a=>`<li><time>${fmt(a.decidedAt)}</time><span>${a.state==="approved"?"✓":"✕"} ${esc(a.company||"")} → ${esc(stl(a.newStatus))}: ${esc(a.summary)}</span></li>`).join("")}</ul>`:""}</div></div>`;
 }
 function vTracker(){
   const f=S.tf, q=f.q.toLowerCase();
@@ -701,67 +729,69 @@ function vTracker(){
   let body;
   if(S.trackerMode==="board"){
     body=`<div class="boardwrap"><div class="board">${BOARD.map(k=>{ const cs=jobs.filter(j=>j.status===k).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-      return `<section class="col" data-drop="${k}" aria-label="${SL[k].l}"><div class="colhead"><span><span class="sdot" style="background:${SL[k].c}"></span>${SL[k].l}</span><span class="n">${cs.length}</span></div>${cs.map(j=>`<button class="card" draggable="true" data-act="open" data-id="${j.id}"><span class="top"><span class="t">${esc(j.title)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></span><span class="c">${esc(j.company)}</span><span class="meta">${isDue(j)?'<span class="chip due">follow-up due</span>':j.followUpAt?`<span class="chip">follow-up ${fmt(j.followUpAt)}</span>`:""}${j.eventAt&&j.eventAt>Date.now()?`<span class="chip info">${fmt(j.eventAt)}</span>`:""}<span class="chip">${ago(j.updatedAt||j.createdAt)}</span>${exChip(j)}</span></button>`).join("")}</section>`;}).join("")}</div></div><p class="hint">Drag kad antara column untuk tukar status.</p>`;
+      return `<section class="col" data-drop="${k}" aria-label="${stl(k)}"><div class="colhead"><span><span class="sdot" style="background:${SL[k].c}"></span>${stl(k)}</span><span class="n">${cs.length}</span></div>${cs.map(j=>`<button class="card" draggable="true" data-act="open" data-id="${j.id}"><span class="top"><span class="t">${esc(j.title)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></span><span class="c">${esc(companyOf(j))}</span><span class="meta">${isDue(j)?`<span class="chip due">${t("follow-up due")}</span>`:j.followUpAt?`<span class="chip">${t("follow-up {d}",{d:fmt(j.followUpAt)})}</span>`:""}${j.eventAt&&j.eventAt>Date.now()?`<span class="chip info">${fmt(j.eventAt)}</span>`:""}<span class="chip">${ago(j.updatedAt||j.createdAt)}</span>${exChip(j)}</span></button>`).join("")}</section>`;}).join("")}</div></div><p class="hint">${t("Drag cards between columns to change status.")}</p>`;
   } else {
     const ev=[]; for(const j of jobs) for(const a of (j.activity||[])) ev.push({...a,j});
     ev.sort((a,b)=>b.t-a.t);
     const byDay={}; for(const e of ev.slice(0,120)){ (byDay[dayKey(e.t)]=byDay[dayKey(e.t)]||[]).push(e); }
-    body=`<div class="panel"><div class="tl">${Object.entries(byDay).map(([d,es])=>`<div><h3>${new Date(d).toLocaleDateString("ms-MY",{weekday:"short",day:"numeric",month:"short"})}</h3><ul>${es.map(e=>`<li><time>${new Date(e.t).toLocaleTimeString("en-MY",{hour:"numeric",minute:"2-digit"})}</time><span><button class="linkish" data-act="open" data-id="${e.j.id}"><b>${esc(e.j.company||e.j.title)}</b></button> · ${esc(e.text)}</span></li>`).join("")}</ul></div>`).join("")||`<div class="empty">Belum ada aktiviti.</div>`}</div></div>`;
+    body=`<div class="panel"><div class="tl">${Object.entries(byDay).map(([d,es])=>`<div><h3>${new Date(d).toLocaleDateString(LOCALE(),{weekday:"short",day:"numeric",month:"short"})}</h3><ul>${es.map(e=>`<li><time>${fmtClock(e.t)}</time><span><button class="linkish" data-act="open" data-id="${e.j.id}"><b>${esc(companyOf(e.j)||e.j.title)}</b></button> · ${esc(actText(e))}</span></li>`).join("")}</ul></div>`).join("")||`<div class="empty">${t("No activity yet.")}</div>`}</div></div>`;
   }
-  return head("Tracker",`${st.live} application aktif · ${st.due} follow-up due`)+kpiRow()+
-  `<div class="toolbar"><input class="input" id="tf_q" data-draft="tf_q" placeholder="Cari role, company atau lokasi…" value="${esc(f.q)}" aria-label="Cari">
-  <select id="tf_loc" class="inl" aria-label="Lokasi"><option value="all">Semua lokasi</option>${locs.map(l=>`<option ${f.loc===l?"selected":""}>${esc(l)}</option>`).join("")}</select>
-  <select id="tf_min" class="inl" aria-label="Fit"><option value="0">Semua fit</option>${[60,75,85].map(n=>`<option value="${n}" ${f.min==n?"selected":""}>Fit ${n}+</option>`).join("")}</select>
-  <div class="seg" role="group" aria-label="Paparan"><button data-act="tmode" data-v="board" aria-pressed="${S.trackerMode==="board"}">Board</button><button data-act="tmode" data-v="timeline" aria-pressed="${S.trackerMode==="timeline"}">Timeline</button></div></div>`+body;
+  return head(t("Tracker"),t("{l} live applications · {f} follow-ups due",{l:st.live,f:st.due}))+kpiRow()+
+  `<div class="toolbar"><input class="input" id="tf_q" data-draft="tf_q" placeholder="${t("Search role, company or location…")}" value="${esc(f.q)}" aria-label="${t("Search")}">
+  <select id="tf_loc" class="inl" aria-label="${t("Location")}"><option value="all">${t("All locations")}</option>${locs.map(l=>`<option ${f.loc===l?"selected":""}>${esc(l)}</option>`).join("")}</select>
+  <select id="tf_min" class="inl" aria-label="${t("Fit")}"><option value="0">${t("Any fit")}</option>${[60,75,85].map(n=>`<option value="${n}" ${f.min==n?"selected":""}>${t("Fit {n}+",{n})}</option>`).join("")}</select>
+  <div class="seg" role="group" aria-label="${t("View")}"><button data-act="tmode" data-v="board" aria-pressed="${S.trackerMode==="board"}">${t("Board")}</button><button data-act="tmode" data-v="timeline" aria-pressed="${S.trackerMode==="timeline"}">${t("Timeline")}</button></div></div>`+body;
 }
 function vMonitoring(){
   const s=ST(), runs=[...S.runs].sort((a,b)=>(b.startedAt||0)-(a.startedAt||0));
   const lr=runs[0], ok=runs.filter(r=>r.status==="succeeded"), added=ok.reduce((a,r)=>a+(r.added||0),0);
+  const finished=runs.filter(r=>r.status==="succeeded"||r.status==="failed").length;
   const per={}; for(const j of S.jobs.filter(j=>j.origin==="auto")){ const o=per[j.sourceId]||(per[j.sourceId]={n:0,last:0,sc:0,ap:0}); o.n++; o.last=Math.max(o.last,j.foundAt||j.createdAt||0); o.sc+=j.score||0; if(j.appliedAt) o.ap++; }
   const running=lr?.status==="running"&&!runStuck(lr);
-  return head("Monitoring","Kesihatan auto-search: bila jalan, apa jumpa, sumber mana berbaloi.")+
-  `<div class="kpis"><div class="kpi ${s.autoEnabled?"good":""}"><div class="v">${s.autoEnabled?"ON":"OFF"}</div><div class="l">Jadual harian ${new Date(nextRunAt()).toLocaleTimeString("en-MY",{hour:"numeric",minute:"2-digit"})}</div></div><div class="kpi"><div class="v">${runs.length}</div><div class="l">Jumlah run</div></div><div class="kpi info"><div class="v">${runs.length?Math.round(ok.length/runs.filter(r=>r.status!=="running"&&r.status!=="skipped").length*100||0):0}%</div><div class="l">Kadar berjaya</div></div><div class="kpi good"><div class="v">${added}</div><div class="l">Job ditemui auto</div></div></div>
-  <div class="autobar"><div><b><span class="dot ${running?"run":s.autoEnabled?"on":""}"></span>${running?"Tengah jalan sekarang":lr?`Run terakhir ${fmtT(lr.startedAt)} · ${esc(runLabel(lr))}`:"Belum pernah jalan"}</b><p>Claude Routine "Job Hunter auto-search" jalan dalam cloud, cari di web ikut sumber kau, rank, dan tulis terus ke sini. Run manual guna connector Claude Code Remote.</p></div><div class="row"><label class="switch"><input type="checkbox" id="autoEnabled" ${s.autoEnabled?"checked":""}> Harian</label><button class="btn pri" data-act="run" ${S.busy.run||running?"disabled":""}>${S.busy.run?"Memulakan…":"Run sekarang"}</button></div></div>
-  <div class="panel" style="margin-bottom:16px"><h2>Sejarah run</h2><div class="tblwrap"><table><thead><tr><th>Mula</th><th>Jenis</th><th>Status</th><th class="num">Dilihat</th><th class="num">Ditambah</th><th class="num">Top</th><th>Nota</th></tr></thead><tbody>${runs.slice(0,20).map(r=>`<tr><td style="white-space:nowrap">${fmtT(r.startedAt)}</td><td>${r.trigger==="manual"?"Manual":"Jadual"}</td><td><span class="chip ${r.status==="succeeded"?"good":r.status==="failed"||runStuck(r)?"bad":r.status==="running"?"due":""}">${esc(runLabel(r))}</span></td><td class="num">${r.found??"–"}</td><td class="num">${r.added??"–"}</td><td class="num">${r.topScore??"–"}</td><td style="min-width:200px">${esc(r.error||r.note||"")}</td></tr>`).join("")||`<tr><td colspan="7"><div class="empty">Belum ada run. Tekan "Run sekarang".</div></td></tr>`}</tbody></table></div></div>
-  <div class="panel"><h2>Kesihatan sumber</h2><div class="tblwrap"><table><thead><tr><th>Sumber</th><th>Status</th><th class="num">Job auto</th><th class="num">Purata fit</th><th class="num">Applied</th><th>Terakhir jumpa</th></tr></thead><tbody>${SOURCES.filter(x=>!x.linkOnly).map(x=>{const o=per[x.id]; const on=s.sources.includes(x.id); return `<tr><td>${esc(x.name)}<br><span class="hint" style="margin:0">${esc(x.kind)}</span></td><td><span class="chip ${on?"good":""}">${on?"aktif":"off"}</span></td><td class="num">${o?.n||0}</td><td class="num">${o?Math.round(o.sc/o.n):"–"}</td><td class="num">${o?.ap||0}</td><td>${o?ago(o.last):on&&ok.length?'<span class="chip due">tiada hasil lagi</span>':"–"}</td></tr>`;}).join("")}</tbody></table></div></div>`;
+  return head(t("Monitoring"),t("Auto-search health: when it ran, what it found, which sources are worth it."))+
+  `<div class="kpis"><div class="kpi ${s.autoEnabled?"good":""}"><div class="v">${s.autoEnabled?"ON":"OFF"}</div><div class="l">${t("Daily schedule {h}",{h:fmtClock(nextRunAt())})}</div></div><div class="kpi"><div class="v">${runs.length}</div><div class="l">${t("Total runs")}</div></div><div class="kpi info"><div class="v">${finished?Math.round(ok.length/finished*100):0}%</div><div class="l">${t("Success rate")}</div></div><div class="kpi good"><div class="v">${added}</div><div class="l">${t("Jobs found by auto-search")}</div></div></div>
+  <div class="autobar"><div><b><span class="dot ${running?"run":s.autoEnabled?"on":""}"></span>${running?t("Running right now"):lr?t("Last run {d} · {s}",{d:fmtT(lr.startedAt),s:runLabel(lr)}):t("Never run yet")}</b><p>${t("The \"Job Hunter auto-search\" Claude Routine runs in the cloud, searches the web using your sources, ranks results and writes them straight here. Manual runs use the Claude Code Remote connector.")}</p></div><div class="row"><label class="switch"><input type="checkbox" id="autoEnabled" ${s.autoEnabled?"checked":""}> ${t("Daily")}</label><button class="btn pri" data-act="run" ${S.busy.run||running?"disabled":""}>${S.busy.run?t("Starting…"):t("Run now")}</button></div></div>
+  <div class="panel" style="margin-bottom:16px"><h2>${t("Run history")}</h2><div class="tblwrap"><table><thead><tr><th>${t("Started")}</th><th>${t("Type")}</th><th>${t("Status")}</th><th class="num">${t("Seen")}</th><th class="num">${t("Added")}</th><th class="num">${t("Top")}</th><th>${t("Note")}</th></tr></thead><tbody>${runs.slice(0,20).map(r=>`<tr><td style="white-space:nowrap">${fmtT(r.startedAt)}</td><td>${t(r.trigger==="manual"?"Manual":"Scheduled")}</td><td><span class="chip ${r.status==="succeeded"?"good":r.status==="failed"||runStuck(r)?"bad":r.status==="running"?"due":""}">${esc(runLabel(r))}</span></td><td class="num">${r.found??"–"}</td><td class="num">${r.added??"–"}</td><td class="num">${r.topScore??"–"}</td><td style="min-width:200px">${esc(r.error||r.note||"")}</td></tr>`).join("")||`<tr><td colspan="7"><div class="empty">${t("No runs yet. Press \"Run now\".")}</div></td></tr>`}</tbody></table></div></div>
+  <div class="panel"><h2>${t("Source health")}</h2><div class="tblwrap"><table><thead><tr><th>${t("Source")}</th><th>${t("Status")}</th><th class="num">${t("Auto jobs")}</th><th class="num">${t("Avg fit")}</th><th class="num">${t("Applied")}</th><th>${t("Last found")}</th></tr></thead><tbody>${SOURCES.filter(x=>!x.linkOnly).map(x=>{const o=per[x.id]; const on=s.sources.includes(x.id); return `<tr><td>${esc(t(x.name))}<br><span class="hint" style="margin:0">${esc(t(x.kind))}</span></td><td><span class="chip ${on?"good":""}">${t(on?"active":"off")}</span></td><td class="num">${o?.n||0}</td><td class="num">${o?Math.round(o.sc/o.n):"–"}</td><td class="num">${o?.ap||0}</td><td>${o?ago(o.last):on&&ok.length?`<span class="chip due">${t("no results yet")}</span>`:"–"}</td></tr>`;}).join("")}</tbody></table></div></div>`;
 }
 function vQuest(){
   const qs=quests(), xp=qs.filter(q=>q.done).reduce((a,q)=>a+q.xp,0), tot=qs.reduce((a,q)=>a+q.xp,0), lvl=Math.floor(xp/100)+1;
-  return head("Setup quest","Siapkan setup supaya AI kerja betul untuk kau. Setiap langkah dapat XP.")+
-  `<div class="panel" style="margin-bottom:16px"><div class="xp"><div class="lvlb">L${lvl}</div><div style="flex:1;min-width:0"><b>${xp} / ${tot} XP</b> · ${qs.filter(q=>q.done).length} dari ${qs.length} quest siap<div class="meter"><i style="width:${Math.round(xp/tot*100)}%"></i></div></div></div></div>
-  <div class="list">${qs.map(q=>`<div class="quest ${q.done?"done":""}"><span class="ck" aria-hidden="true">✓</span><span style="min-width:0"><b>${esc(q.t)}</b><small>${esc(q.d)}</small></span><span class="row" style="gap:8px"><span class="xpv">+${q.xp} XP</span>${q.done?'<span class="chip good">Siap</span>':`<button class="btn sm pri" data-act="view" data-v="${q.go}">Buat</button>`}</span></div>`).join("")}</div>`;
+  return head(t("Setup quest"),t("Finish setup so the AI works properly for you. Every step earns XP."))+
+  `<div class="panel" style="margin-bottom:16px"><div class="xp"><div class="lvlb">L${lvl}</div><div style="flex:1;min-width:0"><b>${xp} / ${tot} XP</b> · ${t("{d} of {n} quests done",{d:qs.filter(q=>q.done).length,n:qs.length})}<div class="meter"><i style="width:${Math.round(xp/tot*100)}%"></i></div></div></div></div>
+  <div class="list">${qs.map(q=>`<div class="quest ${q.done?"done":""}"><span class="ck" aria-hidden="true">✓</span><span style="min-width:0"><b>${esc(t(q.t))}</b><small>${esc(t(q.d))}</small></span><span class="row" style="gap:8px"><span class="xpv">+${q.xp} XP</span>${q.done?`<span class="chip good">${t("Done")}</span>`:`<button class="btn sm pri" data-act="view" data-v="${q.go}">${t("Do it")}</button>`}</span></div>`).join("")}</div>`;
 }
 function vKnowledge(){
   const st=[...S.stories].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)), d=k=>esc(S.drafts["k_"+k]||"");
-  return head("Knowledge bank","Cerita pencapaian sebenar kau. AI guna ni untuk tailor resume, cover letter dan jawapan interview.",`<button class="btn" data-act="extract" ${S.busy.stories?"disabled":""}>${S.busy.stories?"AI tengah extract…":"Extract dari CV"}</button>`)+
-  `<div class="grid2"><div class="list">${st.length?st.map(s=>`<div class="panel"><h2>${esc(s.title)} ${s.fromAI?'<span class="chip info">AI draf</span>':""}<span class="sp"><button class="xs" data-act="delstory" data-id="${s.id}" aria-label="Padam cerita">${S.confirm===s.id?"?":"×"}</button></span></h2><dl class="kv"><dt>Situasi</dt><dd>${esc(s.situation)}</dd><dt>Tindakan</dt><dd>${esc(s.action)}</dd><dt>Hasil</dt><dd>${esc(s.result)}</dd>${s.metric?`<dt>Angka</dt><dd><b>${esc(s.metric)}</b></dd>`:""}</dl><div class="row" style="gap:6px">${(s.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div></div>`).join(""):`<div class="empty">Belum ada cerita. Tekan "Extract dari CV" atau tulis sendiri di sebelah.</div>`}</div>
-  <div class="panel"><h2>Tambah cerita (STAR)</h2><div class="form">
-   <label class="f full" for="k_title">Tajuk<input class="input" id="k_title" data-draft="k_title" value="${d("title")}" placeholder="cth: Turunkan CPL kempen takaful"></label>
-   <label class="f full" for="k_situation">Situasi<textarea id="k_situation" data-draft="k_situation" rows="2">${d("situation")}</textarea></label>
-   <label class="f full" for="k_action">Apa kau buat<textarea id="k_action" data-draft="k_action" rows="3">${d("action")}</textarea></label>
-   <label class="f full" for="k_result">Hasil<textarea id="k_result" data-draft="k_result" rows="2">${d("result")}</textarea></label>
-   <label class="f" for="k_metric">Angka<input class="input" id="k_metric" data-draft="k_metric" value="${d("metric")}" placeholder="cth: CPL RM42 → RM18"></label>
-   <label class="f" for="k_tags">Tag (koma)<input class="input" id="k_tags" data-draft="k_tags" value="${d("tags")}" placeholder="Meta Ads, funnel"></label>
-  </div><div class="row" style="margin-top:12px"><button class="btn pri" data-act="addstory">Simpan cerita</button></div></div></div>`;
+  return head(t("Knowledge bank"),t("Your real achievement stories. The AI uses them to tailor resumes, cover letters and interview answers."),`<button class="btn" data-act="extract" ${S.busy.stories?"disabled":""}>${S.busy.stories?t("AI is extracting…"):t("Extract from CV")}</button>`)+
+  `<div class="grid2"><div class="list">${st.length?st.map(s=>`<div class="panel"><h2>${esc(s.title)} ${s.fromAI?`<span class="chip info">${t("AI draft")}</span>`:""}<span class="sp"><button class="xs" data-act="delstory" data-id="${s.id}" aria-label="${t("Delete story")}">${S.confirm===s.id?"?":"×"}</button></span></h2><dl class="kv"><dt>${t("Situation")}</dt><dd>${esc(s.situation)}</dd><dt>${t("Action")}</dt><dd>${esc(s.action)}</dd><dt>${t("Result")}</dt><dd>${esc(s.result)}</dd>${s.metric?`<dt>${t("Metric")}</dt><dd><b>${esc(s.metric)}</b></dd>`:""}</dl><div class="row" style="gap:6px">${(s.tags||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div></div>`).join(""):`<div class="empty">${t("No stories yet. Press \"Extract from CV\" or write one yourself.")}</div>`}</div>
+  <div class="panel"><h2>${t("Add a story (STAR)")}</h2><div class="form">
+   <label class="f full" for="k_title">${t("Title")}<input class="input" id="k_title" data-draft="k_title" value="${d("title")}" placeholder="${t("e.g. Cut CPL on a takaful campaign")}"></label>
+   <label class="f full" for="k_situation">${t("Situation")}<textarea id="k_situation" data-draft="k_situation" rows="2">${d("situation")}</textarea></label>
+   <label class="f full" for="k_action">${t("What you did")}<textarea id="k_action" data-draft="k_action" rows="3">${d("action")}</textarea></label>
+   <label class="f full" for="k_result">${t("Result")}<textarea id="k_result" data-draft="k_result" rows="2">${d("result")}</textarea></label>
+   <label class="f" for="k_metric">${t("Metric")}<input class="input" id="k_metric" data-draft="k_metric" value="${d("metric")}" placeholder="${t("e.g. CPL RM42 → RM18")}"></label>
+   <label class="f" for="k_tags">${t("Tags (comma separated)")}<input class="input" id="k_tags" data-draft="k_tags" value="${d("tags")}" placeholder="Meta Ads, funnel"></label>
+  </div><div class="row" style="margin-top:12px"><button class="btn pri" data-act="addstory">${t("Save story")}</button></div></div></div>`;
 }
 function vSettings(){
   const p=S.profile||{}, s=ST(), v=k=>esc(S.drafts["p_"+k]??p[k]??"");
-  return head("Settings & profile","Semua ranking, auto-search dan tulisan AI guna maklumat ni. Isi dengan fakta sebenar je.",`<button class="btn pri" data-act="saveprofile">Simpan profile</button>`)+
-  `<div class="grid2"><div class="panel"><h2>Profile & CV</h2><div class="form">
-   <label class="f" for="p_name">Nama<input class="input" id="p_name" data-draft="p_name" value="${v("name")}"></label>
-   <label class="f" for="p_headline">Headline<input class="input" id="p_headline" data-draft="p_headline" value="${v("headline")}"></label>
-   <label class="f full" for="p_targetRoles">Target roles (koma)<input class="input" id="p_targetRoles" data-draft="p_targetRoles" value="${v("targetRoles")}"></label>
-   <label class="f" for="p_locations">Lokasi<input class="input" id="p_locations" data-draft="p_locations" value="${v("locations")}"></label>
-   <label class="f" for="p_salaryFloor">Gaji minimum (RM/bulan)<input class="input" id="p_salaryFloor" data-draft="p_salaryFloor" value="${v("salaryFloor")}" placeholder="cth: 8000"></label>
-   <label class="f full" for="p_avoid">Elak<input class="input" id="p_avoid" data-draft="p_avoid" value="${v("avoid")}" placeholder="cth: MLM, commission-only, junior"></label>
-   <label class="f full" for="p_resume">CV penuh (paste teks)<textarea id="p_resume" data-draft="p_resume" rows="16">${v("resume")}</textarea></label></div></div>
-  <div class="stack"><div class="panel"><h2>Alert & follow-up</h2><div class="form">
-   <label class="f" for="s_alertScore">Alert bila fit ≥<input class="input" type="number" min="40" max="100" id="s_alertScore" value="${s.alertScore}"></label>
-   <label class="f" for="s_followDays">Follow-up lepas (hari)<input class="input" type="number" min="2" max="30" id="s_followDays" value="${s.followDays}"></label>
-   <label class="f" for="s_ghostDays">Anggap ghosted lepas (hari)<input class="input" type="number" min="7" max="90" id="s_ghostDays" value="${s.ghostDays}"></label>
-   <label class="f" for="s_maxPerRun">Max job setiap auto-search<input class="input" type="number" min="3" max="40" id="s_maxPerRun" value="${s.maxPerRun}"></label></div>
-   <div class="row" style="margin-top:12px"><button class="btn" data-act="saveprefs">Simpan</button></div></div>
-   <div class="panel"><h2>Data</h2><div class="list"><div class="item"><span><span class="t">Job contoh</span><br><span class="s">${S.jobs.filter(j=>j.example).length} dalam sistem</span></span><button class="btn sm" data-act="clearex" ${S.jobs.some(j=>j.example)?"":"disabled"}>Padam</button></div><div class="item"><span><span class="t">Alert yang ditutup</span><br><span class="s">${Object.keys(S.ui?.dismissed||{}).length} disembunyikan</span></span><button class="btn sm" data-act="resetalerts">Tunjuk semula</button></div></div></div></div></div>`;
+  return head(t("Settings & profile"),t("All ranking, auto-search and AI writing use this. Real facts only."),`<button class="btn pri" data-act="saveprofile">${t("Save profile")}</button>`)+
+  `<div class="grid2"><div class="panel"><h2>${t("Profile & CV")}</h2><div class="form">
+   <label class="f" for="p_name">${t("Name")}<input class="input" id="p_name" data-draft="p_name" value="${v("name")}"></label>
+   <label class="f" for="p_headline">${t("Headline")}<input class="input" id="p_headline" data-draft="p_headline" value="${v("headline")}"></label>
+   <label class="f full" for="p_targetRoles">${t("Target roles (comma separated)")}<input class="input" id="p_targetRoles" data-draft="p_targetRoles" value="${v("targetRoles")}"></label>
+   <label class="f" for="p_locations">${t("Locations")}<input class="input" id="p_locations" data-draft="p_locations" value="${v("locations")}"></label>
+   <label class="f" for="p_salaryFloor">${t("Minimum salary (RM/month)")}<input class="input" id="p_salaryFloor" data-draft="p_salaryFloor" value="${v("salaryFloor")}" placeholder="${t("e.g. 8000")}"></label>
+   <label class="f full" for="p_avoid">${t("Avoid")}<input class="input" id="p_avoid" data-draft="p_avoid" value="${v("avoid")}" placeholder="${t("e.g. MLM, commission-only, junior")}"></label>
+   <label class="f full" for="p_resume">${t("Full CV (paste text)")}<textarea id="p_resume" data-draft="p_resume" rows="16">${v("resume")}</textarea></label></div></div>
+  <div class="stack"><div class="panel"><h2>${t("Language")}</h2><div class="seg" role="group" aria-label="${t("Language")}"><button data-act="lang" data-v="en" aria-pressed="${LANG==="en"}">English</button><button data-act="lang" data-v="ja" aria-pressed="${LANG==="ja"}" lang="ja">日本語</button></div><p class="hint">${t("Resumes and cover letters are always written in English. Summaries, tips and prep notes follow this setting.")}</p></div>
+   <div class="panel"><h2>${t("Alerts & follow-ups")}</h2><div class="form">
+   <label class="f" for="s_alertScore">${t("Alert when fit ≥")}<input class="input" type="number" min="40" max="100" id="s_alertScore" value="${s.alertScore}"></label>
+   <label class="f" for="s_followDays">${t("Follow up after (days)")}<input class="input" type="number" min="2" max="30" id="s_followDays" value="${s.followDays}"></label>
+   <label class="f" for="s_ghostDays">${t("Treat as ghosted after (days)")}<input class="input" type="number" min="7" max="90" id="s_ghostDays" value="${s.ghostDays}"></label>
+   <label class="f" for="s_maxPerRun">${t("Max jobs per auto-search")}<input class="input" type="number" min="3" max="40" id="s_maxPerRun" value="${s.maxPerRun}"></label></div>
+   <div class="row" style="margin-top:12px"><button class="btn" data-act="saveprefs">${t("Save")}</button></div></div>
+   <div class="panel"><h2>${t("Data")}</h2><div class="list"><div class="item"><span><span class="t">${t("Example jobs")}</span><br><span class="s">${t("{n} in the system",{n:S.jobs.filter(j=>j.example).length})}</span></span><button class="btn sm" data-act="clearex" ${S.jobs.some(j=>j.example)?"":"disabled"}>${t("Delete")}</button></div><div class="item"><span><span class="t">${t("Dismissed alerts")}</span><br><span class="s">${t("{n} hidden",{n:Object.keys(S.ui?.dismissed||{}).length})}</span></span><button class="btn sm" data-act="resetalerts">${t("Show again")}</button></div></div></div></div></div>`;
 }
 const VIEWS={overview:vOverview,today:vToday,discovery:vDiscovery,tailor:vTailor,approvals:vApprovals,tracker:vTracker,monitoring:vMonitoring,quest:vQuest,knowledge:vKnowledge,settings:vSettings};
 
@@ -772,48 +802,48 @@ function renderDrawer(){
   let body="";
   if(S.tab==="fit"){
     const evv=j.eventAt?new Date(j.eventAt-new Date(j.eventAt).getTimezoneOffset()*6e4).toISOString().slice(0,16):"";
-    body=`<dl class="kv"><dt>Status</dt><dd><select id="d_status" class="inl" aria-label="Status">${STATUSES.map(s=>`<option value="${s.k}" ${j.status===s.k?"selected":""}>${s.l}</option>`).join("")}</select></dd>
-     <dt>Fit score</dt><dd><span class="score ${scoreCls(j.score)}" style="text-align:left">${j.score??"–"}/100</span> <span class="verdict">${esc(j.verdict||"")}</span><div class="meter"><i style="width:${j.score||0}%"></i></div></dd>
-     <dt>Lokasi</dt><dd>${esc(j.location||"–")} ${modeChip(j)}</dd><dt>Gaji</dt><dd>${esc(j.salary||"tak dinyatakan")}</dd>
-     <dt>Sumber</dt><dd>${esc(j.source||"–")}${j.origin==="auto"?' <span class="chip info">auto-search</span>':""}${j.url?` · <a href="${esc(j.url)}" target="_blank" rel="noopener">buka iklan ↗</a>`:""}</dd>
-     ${j.postedAt?`<dt>Diiklan</dt><dd>${esc(j.postedAt)}</dd>`:""}
-     ${j.appliedAt?`<dt>Applied</dt><dd>${fmt(j.appliedAt)}${j.followUpAt?` · follow-up ${fmt(j.followUpAt)}`:""}</dd>`:""}
-     <dt><label for="d_event">Interview / tarikh</label></dt><dd><input type="datetime-local" class="input" id="d_event" value="${evv}" style="width:auto"></dd></dl>
-     <div class="sec"><h3>Kenapa sesuai</h3>${j.reasons?.length?`<ul class="bullets">${j.reasons.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">Belum di-rank.</p>`}</div>
-     <div class="sec"><h3>Gap / risiko</h3>${j.gaps?.length?`<ul class="bullets">${j.gaps.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">Tiada direkod.</p>`}</div>
-     ${j.keywords?.length?`<div class="sec"><h3>Keyword wajib</h3><div class="row" style="gap:6px">${j.keywords.map(k=>`<span class="chip">${esc(k)}</span>`).join("")}</div></div>`:""}
-     <div class="row">${["discovered","shortlisted"].includes(j.status)?`<button class="btn ok" data-act="status" data-id="${j.id}" data-s="applied">Tanda dah apply</button>`:""}<button class="btn" data-act="rerank" data-id="${j.id}" ${S.busy["rank:"+j.id]?"disabled":""}>${S.busy["rank:"+j.id]?"Ranking…":"Rank semula"}</button></div>`;
+    body=`<dl class="kv"><dt>${t("Status")}</dt><dd><select id="d_status" class="inl" aria-label="${t("Status")}">${STATUSES.map(s=>`<option value="${s.k}" ${j.status===s.k?"selected":""}>${stl(s.k)}</option>`).join("")}</select></dd>
+     <dt>${t("Fit score")}</dt><dd><span class="score ${scoreCls(j.score)}" style="text-align:left">${j.score??"–"}/100</span> <span class="verdict" style="color:${verdictColor(j.verdict)}">${esc(t(j.verdict||""))}</span><div class="meter"><i style="width:${j.score||0}%"></i></div></dd>
+     <dt>${t("Location")}</dt><dd>${esc(j.location||"–")} ${modeChip(j)}</dd><dt>${t("Salary")}</dt><dd>${esc(j.salary||t("not stated"))}</dd>
+     <dt>${t("Source")}</dt><dd>${esc(j.source||"–")}${j.origin==="auto"?` <span class="chip info">${t("auto-search")}</span>`:""}${j.url?` · <a href="${esc(j.url)}" target="_blank" rel="noopener">${t("open the ad")} ↗</a>`:""}</dd>
+     ${j.postedAt?`<dt>${t("Posted")}</dt><dd>${esc(j.postedAt)}</dd>`:""}
+     ${j.appliedAt?`<dt>${t("Applied")}</dt><dd>${fmt(j.appliedAt)}${j.followUpAt?` · ${t("follow-up {d}",{d:fmt(j.followUpAt)})}`:""}</dd>`:""}
+     <dt><label for="d_event">${t("Interview / date")}</label></dt><dd><input type="datetime-local" class="input" id="d_event" value="${evv}" style="width:auto"></dd></dl>
+     <div class="sec"><h3>${t("Why it fits")}</h3>${j.reasons?.length?`<ul class="bullets">${j.reasons.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">${t("Not ranked yet.")}</p>`}</div>
+     <div class="sec"><h3>${t("Gaps / risks")}</h3>${j.gaps?.length?`<ul class="bullets">${j.gaps.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">${t("None recorded.")}</p>`}</div>
+     ${j.keywords?.length?`<div class="sec"><h3>${t("Must-have keywords")}</h3><div class="row" style="gap:6px">${j.keywords.map(k=>`<span class="chip">${esc(k)}</span>`).join("")}</div></div>`:""}
+     <div class="row">${["discovered","shortlisted"].includes(j.status)?`<button class="btn ok" data-act="status" data-id="${j.id}" data-s="applied">${t("Mark as applied")}</button>`:""}<button class="btn" data-act="rerank" data-id="${j.id}" ${S.busy["rank:"+j.id]?"disabled":""}>${S.busy["rank:"+j.id]?t("Ranking…"):t("Re-rank")}</button></div>`;
   } else if(STREAMS[S.tab]){
     const kind=S.tab, cfg=STREAMS[kind], key=j.id+":"+kind, saved=j[cfg.field], busy=S.busy[key], text=S.stream[key]??saved;
-    body=`<div class="row" style="margin-bottom:12px"><button class="btn pri" data-act="gen" data-k="${kind}" ${busy?"disabled":""}>${busy?"AI tengah tulis…":saved?"Jana semula":"Jana "+cfg.label.toLowerCase()}</button>${busy?`<button class="btn" data-act="stop">Stop</button>`:""}${saved&&!busy?`<button class="btn" data-act="copy" data-k="${kind}">Copy</button>${downloads?`<button class="btn" data-act="dl" data-k="${kind}">Simpan .txt</button>`:""}`:""}</div>
-    <div class="out ${text?"":"wait"}" id="out-${kind}">${text?md(text):busy?"Thinking… (biasanya 10–40 saat)":"Belum dijana. AI guna CV, Knowledge bank dan JD job ni. Angka yang tiada akan jadi [ISI: …] supaya kau isi sendiri."}</div>
-    ${!j.jd?`<p class="hint">Job ni tak ada JD penuh. Paste dalam tab Notes & log supaya hasil lebih tepat.</p>`:""}`;
+    body=`<div class="row" style="margin-bottom:12px"><button class="btn pri" data-act="gen" data-k="${kind}" ${busy?"disabled":""}>${busy?t("AI is writing…"):saved?t("Regenerate"):t("Generate {d}",{d:t(cfg.label).toLowerCase()})}</button>${busy?`<button class="btn" data-act="stop">${t("Stop")}</button>`:""}${saved&&!busy?`<button class="btn" data-act="copy" data-k="${kind}">${t("Copy")}</button>${downloads?`<button class="btn" data-act="dl" data-k="${kind}">${t("Save .txt")}</button>`:""}`:""}</div>
+    <div class="out ${text?"":"wait"}" id="out-${kind}">${text?md(text):busy?t("Thinking… (usually 10–40 seconds)"):t("Not generated yet. The AI uses your CV, Knowledge bank and this job's JD. Missing numbers become [FILL IN: …] so you can add the real ones.")}</div>
+    ${!j.jd?`<p class="hint">${t("This job has no full JD. Paste it in the Notes & log tab for better results.")}</p>`:""}`;
   } else {
-    body=`<div class="sec"><h3>Notes</h3><textarea id="d_notes" data-draft="notes:${j.id}" rows="5" placeholder="Nama recruiter, gaji dibincang…">${esc(S.drafts["notes:"+j.id]??j.notes??"")}</textarea></div>
-    <div class="sec"><h3>Job description</h3><textarea id="d_jd" data-draft="jd:${j.id}" rows="7" placeholder="Paste JD penuh">${esc(S.drafts["jd:"+j.id]??j.jd??"")}</textarea>
-    <div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="savenotes" data-id="${j.id}">Simpan</button><button class="btn sm" data-act="delete" data-id="${j.id}" style="margin-left:auto;color:var(--red)">${S.confirm===j.id?"Tekan sekali lagi untuk padam":"Padam job"}</button></div></div>
-    <div class="sec"><h3>Log aktiviti</h3><ul class="timeline">${[...(j.activity||[])].reverse().map(a=>`<li><time>${fmt(a.t)}</time><span>${esc(a.text)}</span></li>`).join("")||"<li>Tiada lagi.</li>"}</ul></div>`;
+    body=`<div class="sec"><h3>${t("Notes")}</h3><textarea id="d_notes" data-draft="notes:${j.id}" rows="5" placeholder="${t("Recruiter name, salary discussed…")}">${esc(S.drafts["notes:"+j.id]??j.notes??"")}</textarea></div>
+    <div class="sec"><h3>${t("Job description")}</h3><textarea id="d_jd" data-draft="jd:${j.id}" rows="7" placeholder="${t("Paste the full JD")}">${esc(S.drafts["jd:"+j.id]??j.jd??"")}</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="savenotes" data-id="${j.id}">${t("Save")}</button><button class="btn sm" data-act="delete" data-id="${j.id}" style="margin-left:auto;color:var(--red)">${S.confirm===j.id?t("Press again to delete"):t("Delete job")}</button></div></div>
+    <div class="sec"><h3>${t("Activity log")}</h3><ul class="timeline">${[...(j.activity||[])].reverse().map(a=>`<li><time>${fmt(a.t)}</time><span>${esc(actText(a))}</span></li>`).join("")||`<li>${t("Nothing yet.")}</li>`}</ul></div>`;
   }
   root.innerHTML=`<div class="scrim" data-act="close"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(j.title)}">
-   <div class="dhead"><div><h2>${esc(j.title)}</h2><p>${esc(j.company)}${j.location?" · "+esc(j.location):""} ${newChip(j)}${exChip(j)}</p></div><button class="x" data-act="close" aria-label="Tutup">×</button></div>
-   <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" data-act="tab" data-t="${k}" aria-selected="${S.tab===k}">${l}</button>`).join("")}</div>
+   <div class="dhead"><div><h2>${esc(j.title)}</h2><p>${esc(companyOf(j))}${j.location?" · "+esc(j.location):""} ${newChip(j)}${exChip(j)}</p></div><button class="x" data-act="close" aria-label="${t("Close")}">×</button></div>
+   <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" data-act="tab" data-t="${k}" aria-selected="${S.tab===k}">${t(l)}</button>`).join("")}</div>
    <div class="dbody">${body}</div></aside>`;
 }
 // ⌘K palette
 function palItems(){
   const q=(S.pal?.q||"").toLowerCase();
-  const pages=[...NAV1,...NAV2].map(([k,l])=>({type:"page",k,l,sub:"Page"}));
-  const jobs=S.jobs.map(j=>({type:"job",k:j.id,l:j.title,sub:`${j.company} · ${SL[j.status].l}`}));
-  const acts=[{type:"act",k:"run",l:"Run auto-search sekarang",sub:"Aksi"},{type:"act",k:"plan",l:"Jana search plan",sub:"Aksi"}];
+  const pages=[...NAV1,...NAV2].map(([k,l])=>({type:"page",k,l:t(l),sub:t("Page")}));
+  const jobs=S.jobs.map(j=>({type:"job",k:j.id,l:j.title,sub:`${companyOf(j)} · ${stl(j.status)}`}));
+  const acts=[{type:"act",k:"run",l:t("Run auto-search now"),sub:t("Action")},{type:"act",k:"plan",l:t("Generate search plan"),sub:t("Action")}];
   return [...pages,...acts,...jobs].filter(x=>!q||(x.l+" "+x.sub).toLowerCase().includes(q)).slice(0,12);
 }
 function renderPal(){
   const r=$("#pal-root");
   if(!S.pal){ r.innerHTML=""; return; }
   const items=palItems(); S.pal.i=Math.min(S.pal.i,Math.max(0,items.length-1));
-  const listHtml=items.map((x,i)=>`<li><button data-act="palpick" data-i="${i}" aria-selected="${i===S.pal.i}"><span>${esc(x.l)}</span><small>${esc(x.sub)}</small></button></li>`).join("")||`<li class="hint" style="padding:12px">Tiada hasil.</li>`;
+  const listHtml=items.map((x,i)=>`<li><button data-act="palpick" data-i="${i}" aria-selected="${i===S.pal.i}"><span>${esc(x.l)}</span><small>${esc(x.sub)}</small></button></li>`).join("")||`<li class="hint" style="padding:12px">${t("No results.")}</li>`;
   if(!r.firstChild){
-    r.innerHTML=`<div class="pal-scrim" data-act="palclose"><div class="pal" role="dialog" aria-label="Cari"><input id="palq" placeholder="Cari page, job atau aksi…" autocomplete="off" aria-label="Cari"><ul id="pallist"></ul></div></div>`;
+    r.innerHTML=`<div class="pal-scrim" data-act="palclose"><div class="pal" role="dialog" aria-label="${t("Search")}"><input id="palq" placeholder="${t("Search pages, jobs or actions…")}" autocomplete="off" aria-label="${t("Search")}"><ul id="pallist"></ul></div></div>`;
     $("#palq").value=S.pal.q; $("#palq").focus();
   }
   $("#pallist").innerHTML=listHtml;
@@ -824,6 +854,7 @@ function palPick(i){
 }
 
 function render(force){
+  document.documentElement.lang=LANG;
   renderNav();
   const a=document.activeElement, main=$("#main");
   const typing=a&&a.matches&&a.matches("input:not([type=checkbox]),textarea")&&(main.contains(a)||$("#drawer-root").contains(a));
@@ -836,6 +867,13 @@ function render(force){
   }
   questCheck();
 }
+function setLang(l){
+  if(l!=="en"&&l!=="ja") return;
+  LANG=l; try{ localStorage.setItem("jh_lang",l); }catch{}
+  if(S.live&&ST().lang!==l) saveSettings({lang:l});
+  if(S.pal){ S.pal=null; renderPal(); }
+  render(true);
+}
 function go(v){
   if(S.view==="discovery"&&v!=="discovery"&&S.live) markSeen();
   S.view=v; S.open=null; try{ localStorage.setItem("jh_view",v); }catch{} render(); window.scrollTo(0,0);
@@ -845,25 +883,25 @@ function openJob(id,tab){ S.open=id; S.tab=tab||"fit"; S.confirm=null; render();
 
 // ---------- events ----------
 document.addEventListener("input",e=>{
-  const t=e.target;
-  if(t.id==="palq"){ S.pal.q=t.value; S.pal.i=0; renderPal(); return; }
-  const k=t.dataset?.draft; if(!k) return;
-  S.drafts[k]=t.value;
-  if(k==="tf_q"){ S.tf.q=t.value; const pos=t.selectionStart; render(true); const f=$("#tf_q"); if(f){ f.focus(); f.setSelectionRange(pos,pos);} }
+  const el=e.target;
+  if(el.id==="palq"){ S.pal.q=el.value; S.pal.i=0; renderPal(); return; }
+  const k=el.dataset?.draft; if(!k) return;
+  S.drafts[k]=el.value;
+  if(k==="tf_q"){ S.tf.q=el.value; const pos=el.selectionStart; render(true); const f=$("#tf_q"); if(f){ f.focus(); f.setSelectionRange(pos,pos);} }
 });
 document.addEventListener("change",async e=>{
-  const t=e.target, j=S.jobs.find(x=>x.id===S.open);
-  if(t.dataset.src){ const s=ST(); const set=new Set(s.sources); t.checked?set.add(t.dataset.src):set.delete(t.dataset.src); await saveSettings({sources:SOURCES.map(x=>x.id).filter(id=>set.has(id))}); return; }
-  switch(t.id){
-    case "workMode": await saveSettings({workMode:t.value}); toast("Work mode: "+MODES[t.value]); break;
-    case "autoEnabled": await saveSettings({autoEnabled:t.checked}); toast(t.checked?"Auto-search harian aktif":"Auto-search harian off. Run manual masih boleh."); break;
-    case "df_src": S.df.src=t.value; render(); break;
-    case "df_mode": S.df.mode=t.value; render(); break;
-    case "df_min": S.df.min=Number(t.value); render(); break;
-    case "tf_loc": S.tf.loc=t.value; render(); break;
-    case "tf_min": S.tf.min=Number(t.value); render(); break;
-    case "d_status": if(j) setStatus(j,t.value); break;
-    case "d_event": if(j){ const v=t.value?new Date(t.value).getTime():null; await patchJob(j.id,{eventAt:v,activity:logOf(j,v?"Tarikh ditetapkan: "+fmtT(v):"Tarikh dibuang")}); toast(v?"Tarikh disimpan":"Tarikh dibuang"); } break;
+  const el=e.target, j=S.jobs.find(x=>x.id===S.open);
+  if(el.dataset.src){ const s=ST(); const set=new Set(s.sources); el.checked?set.add(el.dataset.src):set.delete(el.dataset.src); await saveSettings({sources:SOURCES.map(x=>x.id).filter(id=>set.has(id))}); return; }
+  switch(el.id){
+    case "workMode": await saveSettings({workMode:el.value}); toast(t("Work mode: {m}",{m:mdl(el.value)})); break;
+    case "autoEnabled": await saveSettings({autoEnabled:el.checked}); toast(t(el.checked?"Daily auto-search is on":"Daily auto-search is off. Manual runs still work.")); break;
+    case "df_src": S.df.src=el.value; render(); break;
+    case "df_mode": S.df.mode=el.value; render(); break;
+    case "df_min": S.df.min=Number(el.value); render(); break;
+    case "tf_loc": S.tf.loc=el.value; render(); break;
+    case "tf_min": S.tf.min=Number(el.value); render(); break;
+    case "d_status": if(j) setStatus(j,el.value); break;
+    case "d_event": if(j){ const v=el.value?new Date(el.value).getTime():null; await patchJob(j.id,{eventAt:v,activity:v?logOf(j,"Date set: {d}",{ts:v}):logOf(j,"Date removed")}); toast(t(v?"Date saved":"Date removed")); } break;
   }
 });
 document.addEventListener("keydown",e=>{
@@ -879,10 +917,11 @@ document.addEventListener("keydown",e=>{
 });
 document.addEventListener("click",async e=>{
   const el=e.target.closest("[data-act]"); if(!el) return;
-  const act=el.dataset.act;
-  if(act==="palclose"&&e.target!==el) return;
+  const a=el.dataset.act;
+  if(a==="palclose"&&e.target!==el) return;
   const j=S.jobs.find(x=>x.id===(el.dataset.id||S.open));
-  switch(act){
+  switch(a){
+    case "lang": setLang(el.dataset.v); break;
     case "view": go(el.dataset.v); break;
     case "open": openJob(el.dataset.id,el.dataset.tab); break;
     case "close": S.open=null; render(); break;
@@ -891,14 +930,14 @@ document.addEventListener("click",async e=>{
     case "palclose": S.pal=null; renderPal(); break;
     case "palpick": palPick(Number(el.dataset.i)); break;
     case "newsearch": go("discovery"); break;
-    case "status": if(j){ await setStatus(j,el.dataset.s); toast(`${j.company||j.title}: ${SL[el.dataset.s].l}`);} break;
-    case "followed": if(j){ await patchJob(j.id,{followUpAt:Date.now()+ST().followDays*DAY,activity:logOf(j,"Follow-up dihantar")}); toast(`Follow-up seterusnya dalam ${ST().followDays} hari`); } break;
+    case "status": if(j){ await setStatus(j,el.dataset.s); toast(`${companyOf(j)||j.title}: ${stl(el.dataset.s)}`);} break;
+    case "followed": if(j){ await patchJob(j.id,{followUpAt:Date.now()+ST().followDays*DAY,activity:logOf(j,"Follow-up sent")}); toast(t("Next follow-up in {n} days",{n:ST().followDays})); } break;
     case "alert": doAlert(el.dataset.id,el.dataset.scope); break;
     case "dismiss-alert": await saveUi({dismissed:{...(S.ui?.dismissed||{}),[el.dataset.id]:Date.now()}}); break;
-    case "resetalerts": await saveUi({dismissed:{}}); toast("Semua alert ditunjuk semula"); break;
+    case "resetalerts": await saveUi({dismissed:{}}); toast(t("All alerts are showing again")); break;
     case "run": runNow(); break;
     case "plan": makePlan(); break;
-    case "savekw": await saveSettings({extraKeywords:(S.drafts.extraKeywords??ST().extraKeywords).trim()}); delete S.drafts.extraKeywords; toast("Keyword disimpan"); break;
+    case "savekw": await saveSettings({extraKeywords:(S.drafts.extraKeywords??ST().extraKeywords).trim()}); delete S.drafts.extraKeywords; toast(t("Keywords saved")); break;
     case "dfshow": S.df.show=el.dataset.v; render(); break;
     case "tmode": S.trackerMode=el.dataset.v; render(); break;
     case "import": importJD(); break;
@@ -906,28 +945,28 @@ document.addEventListener("click",async e=>{
     case "gen": if(j) runStream(j,el.dataset.k); break;
     case "stop": ctl?.abort(); break;
     case "email": readEmail(); break;
-    case "approve": { const a=S.approvals.find(x=>x.id===el.dataset.id); if(a) approve(a); break; }
+    case "approve": { const ap=S.approvals.find(x=>x.id===el.dataset.id); if(ap) approve(ap); break; }
     case "reject-appr": await upd("approvals",el.dataset.id,{state:"dismissed",decidedAt:Date.now()}); break;
-    case "copy": { const text=j?.[STREAMS[el.dataset.k].field]||""; try{ await navigator.clipboard.writeText(text); toast("Copied"); }catch{ const o=$("#out-"+el.dataset.k); const r=document.createRange(); r.selectNodeContents(o); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Teks dipilih, tekan Ctrl/Cmd+C"); } break; }
-    case "dl": if(j&&downloads){ const k=el.dataset.k; try{ await downloads.save({filename:`${k}-${(j.company||"job").replace(/[^a-z0-9]+/gi,"-")}.txt`,data:j[STREAMS[k].field]||""}); toast("Disimpan"); }catch(err){ if(err?.code!=="cancelled") toast("Tak dapat simpan fail."); } } break;
-    case "savenotes": if(j){ const n=S.drafts["notes:"+j.id]??j.notes??"", jd=S.drafts["jd:"+j.id]??j.jd??""; await patchJob(j.id,{notes:n,jd}); delete S.drafts["notes:"+j.id]; delete S.drafts["jd:"+j.id]; toast("Disimpan"); } break;
-    case "delete": if(j){ if(S.confirm===j.id){ S.open=null; S.confirm=null; await del("jobs",j.id); toast("Job dipadam"); } else { S.confirm=j.id; render(); } } break;
-    case "clearex": { for(const x of S.jobs.filter(x=>x.example)) await del("jobs",x.id); toast("Job contoh dipadam"); break; }
+    case "copy": { const text=j?.[STREAMS[el.dataset.k].field]||""; try{ await navigator.clipboard.writeText(text); toast(t("Copied")); }catch{ const o=$("#out-"+el.dataset.k); const r=document.createRange(); r.selectNodeContents(o); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast(t("Text selected, press Ctrl/Cmd+C")); } break; }
+    case "dl": if(j&&downloads){ const k=el.dataset.k; try{ await downloads.save({filename:`${k}-${(j.company||"job").replace(/[^a-z0-9]+/gi,"-")}.txt`,data:j[STREAMS[k].field]||""}); toast(t("Saved")); }catch(err){ if(err?.code!=="cancelled") toast(t("Couldn't save the file.")); } } break;
+    case "savenotes": if(j){ const n=S.drafts["notes:"+j.id]??j.notes??"", jd=S.drafts["jd:"+j.id]??j.jd??""; await patchJob(j.id,{notes:n,jd}); delete S.drafts["notes:"+j.id]; delete S.drafts["jd:"+j.id]; toast(t("Saved")); } break;
+    case "delete": if(j){ if(S.confirm===j.id){ S.open=null; S.confirm=null; await del("jobs",j.id); toast(t("Job deleted")); } else { S.confirm=j.id; render(); } } break;
+    case "clearex": { for(const x of S.jobs.filter(x=>x.example)) await del("jobs",x.id); toast(t("Example jobs deleted")); break; }
     case "extract": extractStories(); break;
-    case "addstory": { const d=k=>(S.drafts["k_"+k]||"").trim(); if(!d("title")){ toast("Isi tajuk dulu."); break; } await put("stories",newId("stories"),{title:d("title"),situation:d("situation"),action:d("action"),result:d("result"),metric:d("metric")||null,tags:d("tags").split(",").map(x=>x.trim()).filter(Boolean),createdAt:Date.now()}); for(const k of ["title","situation","action","result","metric","tags"]) delete S.drafts["k_"+k]; toast("Cerita disimpan"); render(true); break; }
-    case "delstory": if(S.confirm===el.dataset.id){ S.confirm=null; await del("stories",el.dataset.id); toast("Cerita dipadam"); } else { S.confirm=el.dataset.id; render(); toast("Tekan × sekali lagi untuk padam"); } break;
-    case "saveprofile": { const p={...(S.profile||{})}; for(const k of ["name","headline","targetRoles","locations","salaryFloor","avoid","resume"]){ if(S.drafts["p_"+k]!=null) p[k]=S.drafts["p_"+k]; delete S.drafts["p_"+k]; } p.updatedAt=Date.now(); await putDoc("main",p); toast("Profile disimpan"); break; }
-    case "saveprefs": { const n=id=>Number($("#"+id)?.value)||undefined; const c=(v,a,b,d)=>v==null?d:Math.min(b,Math.max(a,v)); const s=ST(); await saveSettings({alertScore:c(n("s_alertScore"),40,100,s.alertScore),followDays:c(n("s_followDays"),2,30,s.followDays),ghostDays:c(n("s_ghostDays"),7,90,s.ghostDays),maxPerRun:c(n("s_maxPerRun"),3,40,s.maxPerRun)}); toast("Tetapan disimpan"); break; }
+    case "addstory": { const d=k=>(S.drafts["k_"+k]||"").trim(); if(!d("title")){ toast(t("Add a title first.")); break; } await put("stories",newId("stories"),{title:d("title"),situation:d("situation"),action:d("action"),result:d("result"),metric:d("metric")||null,tags:d("tags").split(",").map(x=>x.trim()).filter(Boolean),createdAt:Date.now()}); for(const k of ["title","situation","action","result","metric","tags"]) delete S.drafts["k_"+k]; toast(t("Story saved")); render(true); break; }
+    case "delstory": if(S.confirm===el.dataset.id){ S.confirm=null; await del("stories",el.dataset.id); toast(t("Story deleted")); } else { S.confirm=el.dataset.id; render(); toast(t("Press × again to delete")); } break;
+    case "saveprofile": { const p={...(S.profile||{})}; for(const k of ["name","headline","targetRoles","locations","salaryFloor","avoid","resume"]){ if(S.drafts["p_"+k]!=null) p[k]=S.drafts["p_"+k]; delete S.drafts["p_"+k]; } p.updatedAt=Date.now(); await putDoc("main",p); toast(t("Profile saved")); break; }
+    case "saveprefs": { const n=id=>Number($("#"+id)?.value)||undefined; const c=(v,lo,hi,d)=>v==null?d:Math.min(hi,Math.max(lo,v)); const s=ST(); await saveSettings({alertScore:c(n("s_alertScore"),40,100,s.alertScore),followDays:c(n("s_followDays"),2,30,s.followDays),ghostDays:c(n("s_ghostDays"),7,90,s.ghostDays),maxPerRun:c(n("s_maxPerRun"),3,40,s.maxPerRun)}); toast(t("Settings saved")); break; }
   }
 });
 // hover tooltip for charts and meters
-document.addEventListener("pointermove",e=>{ const t=e.target.closest?.("[data-tip]"), tip=$("#tip"); if(!t){ tip.hidden=true; return; } tip.textContent=t.dataset.tip; tip.hidden=false; tip.style.left=Math.min(e.clientX+12,innerWidth-250)+"px"; tip.style.top=(e.clientY+14)+"px"; });
+document.addEventListener("pointermove",e=>{ const el=e.target.closest?.("[data-tip]"), tip=$("#tip"); if(!el){ tip.hidden=true; return; } tip.textContent=el.dataset.tip; tip.hidden=false; tip.style.left=Math.min(e.clientX+12,innerWidth-250)+"px"; tip.style.top=(e.clientY+14)+"px"; });
 // drag & drop on the board
 let dragId=null;
 document.addEventListener("dragstart",e=>{ const c=e.target.closest?.(".card"); if(!c) return; dragId=c.dataset.id; c.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",dragId); }catch{} });
 document.addEventListener("dragend",e=>{ e.target.closest?.(".card")?.classList.remove("dragging"); document.querySelectorAll(".col.over").forEach(c=>c.classList.remove("over")); });
 document.addEventListener("dragover",e=>{ const col=e.target.closest?.("[data-drop]"); if(!col||!dragId) return; e.preventDefault(); document.querySelectorAll(".col.over").forEach(c=>c!==col&&c.classList.remove("over")); col.classList.add("over"); });
-document.addEventListener("drop",async e=>{ const col=e.target.closest?.("[data-drop]"); if(!col||!dragId) return; e.preventDefault(); const j=S.jobs.find(x=>x.id===dragId); dragId=null; col.classList.remove("over"); if(j&&j.status!==col.dataset.drop){ await setStatus(j,col.dataset.drop); toast(`${j.company||j.title}: ${SL[col.dataset.drop].l}`); } });
+document.addEventListener("drop",async e=>{ const col=e.target.closest?.("[data-drop]"); if(!col||!dragId) return; e.preventDefault(); const j=S.jobs.find(x=>x.id===dragId); dragId=null; col.classList.remove("over"); if(j&&j.status!==col.dataset.drop){ await setStatus(j,col.dataset.drop); toast(`${companyOf(j)||j.title}: ${stl(col.dataset.drop)}`); } });
 // refresh relative times + stuck-run detection
 setInterval(()=>render(),60e3);
 
@@ -945,9 +984,11 @@ else {
     if(!d){ useDemo(); return; }
     db=d; S.live=true; S.ready=true;
     const docSub=(key,prop,after)=>db.doc("profile/"+key).onSnapshot(s=>{ S[prop]=s.exists?s.data():null; after&&after(); render(); },()=>{});
-    docSub("main","profile"); docSub("settings","settings"); docSub("plan","plan");
+    docSub("main","profile"); docSub("plan","plan");
+    let langSynced=false;
+    docSub("settings","settings",()=>{ const l=S.settings?.lang; if(!langSynced&&l&&l!==LANG){ LANG=l; try{ localStorage.setItem("jh_lang",l); }catch{} } langSynced=true; });
     docSub("ui","ui",()=>{ S.uiLoaded=true; if(S.prevSeen==null){ S.prevSeen=S.ui?.seen?.discovery??0; } });
-    const colSub=c=>db.collection(c).onSnapshot(q=>{ S[c]=q.docs.map(d=>({id:d.id,...d.data()})); S.loaded.add(c); if(c==="jobs"&&S.open&&!S.jobs.some(j=>j.id===S.open)) S.open=null; render(); },()=>toast("Tak dapat baca "+c+"."));
+    const colSub=c=>db.collection(c).onSnapshot(q=>{ S[c]=q.docs.map(d=>({id:d.id,...d.data()})); S.loaded.add(c); if(c==="jobs"&&S.open&&!S.jobs.some(j=>j.id===S.open)) S.open=null; render(); },()=>toast(t("Couldn't read {c}.",{c})));
     ["jobs","approvals","runs","stories"].forEach(colSub);
   }).catch(useDemo);
 }
