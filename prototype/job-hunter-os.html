@@ -3,11 +3,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-/* Layout: fixed navy sidebar + scrolling workspace; Kanban scrolls inside its own track; detail opens as a right drawer (full screen on phones). */
+/* Layout: fixed navy sidebar (workspace + setup groups) + scrolling workspace; Kanban scrolls inside its own track; job detail opens as a right drawer; ⌘K palette overlays. */
 :root{
   --bg:#fdf9f3; --surface:#ffffff; --surface-2:#f6f0e4; --ink:#0f2540; --muted:#5f6b7d; --line:#e9e1d1;
   --gold:#fac748; --gold-deep:#d9a521; --gold-ink:#7a5600; --gold-soft:#fdf1cf;
   --green:#0f4c35; --green-soft:#e2f0e8; --red:#a83a2f; --red-soft:#f8e3df; --blue:#2b4f86; --blue-soft:#e4ecf7;
+  --chart:#2b5fa8; --grid:#ece5d8;
   --side:#0f2540; --side-ink:#dfe7f2; --side-muted:#8ea0b8; --side-hi:#1b3758;
   --shadow:0 1px 2px rgba(15,37,64,.06),0 6px 18px rgba(15,37,64,.06);
   --font:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -18,12 +19,14 @@
   --bg:#0b1524; --surface:#122139; --surface-2:#0f1c31; --ink:#edf1f7; --muted:#9aa7ba; --line:#22344f;
   --gold:#fac748; --gold-deep:#c99418; --gold-ink:#f6cf68; --gold-soft:#3a3016;
   --green:#5cc49a; --green-soft:#16362a; --red:#ef8b80; --red-soft:#3c1e1c; --blue:#8fb1e6; --blue-soft:#1b2c46;
+  --chart:#7fa6e3; --grid:#1d2e47;
   --side:#07101e; --side-ink:#dfe7f2; --side-muted:#7f90a8; --side-hi:#162a45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0b1524; --surface:#122139; --surface-2:#0f1c31; --ink:#edf1f7; --muted:#9aa7ba; --line:#22344f;
   --gold:#fac748; --gold-deep:#c99418; --gold-ink:#f6cf68; --gold-soft:#3a3016;
   --green:#5cc49a; --green-soft:#16362a; --red:#ef8b80; --red-soft:#3c1e1c; --blue:#8fb1e6; --blue-soft:#1b2c46;
+  --chart:#7fa6e3; --grid:#1d2e47;
   --side:#07101e; --side-ink:#dfe7f2; --side-muted:#7f90a8; --side-hi:#162a45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
 *{box-sizing:border-box}
@@ -31,31 +34,33 @@ html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5}
 button,input,textarea,select{font:inherit;color:inherit}
 a{color:var(--blue)}
-.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100%}
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100%}
 /* sidebar */
-.side{background:var(--side);color:var(--side-ink);padding:18px 12px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
+.side{background:var(--side);color:var(--side-ink);padding:18px 12px;display:flex;flex-direction:column;gap:16px;position:sticky;top:0;height:100vh;overflow-y:auto}
 .brand{display:flex;gap:10px;align-items:center;padding:0 6px}
-.logo{width:34px;height:34px;border-radius:10px;background:var(--gold);color:#0f2540;display:grid;place-items:center;font-weight:800;box-shadow:0 3px 0 #b8890f}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--gold);color:#0f2540;display:grid;place-items:center;font-weight:800;box-shadow:0 3px 0 #b8890f;flex:none}
 .brand b{display:block;font-size:15px;line-height:1.2}
 .brand small{color:var(--side-muted);font-size:11px}
 .navlabel{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--side-muted);padding:0 8px;margin-bottom:4px}
 .nav{display:flex;flex-direction:column;gap:2px}
-.nav button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--side-ink)}
+.nav button{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:10px;font-size:13.5px;font-weight:500;color:var(--side-ink)}
 .nav button:hover{background:var(--side-hi)}
 .nav button[aria-current="page"]{background:var(--side-hi);box-shadow:inset 3px 0 0 var(--gold)}
 .nav button:focus-visible{outline:2px solid var(--gold)}
 .nav .n{font-family:var(--mono);font-size:11px;color:var(--side-muted)}
-.sidefoot{margin-top:auto;font-size:11.5px;color:var(--side-muted);background:var(--side-hi);border-radius:12px;padding:10px 12px}
+.nav .n.hot{background:var(--gold);color:#0f2540;border-radius:99px;padding:0 7px;font-weight:700}
+.sidefoot{margin-top:auto;font-size:11.5px;color:var(--side-muted);background:var(--side-hi);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
 .sidefoot b{color:var(--side-ink);display:flex;gap:6px;align-items:center}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--side-muted);display:inline-block}
-.dot.on{background:#5cc49a}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--side-muted);display:inline-block;flex:none}
+.dot.on{background:#5cc49a} .dot.run{background:var(--gold);animation:pulse 1.2s infinite} .dot.bad{background:#ef8b80}
+@keyframes pulse{50%{opacity:.35}}
 /* main */
 main{padding-block:22px 60px;padding-inline:28px;min-width:0}
 .head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
 .head h1{font-size:26px;margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
 .head p{margin:2px 0 0;color:var(--muted);font-size:13px}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.btn{cursor:pointer;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 14px;font-weight:600;font-size:13px;box-shadow:0 3px 0 var(--line);transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s}
+.btn{cursor:pointer;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 14px;font-weight:600;font-size:13px;box-shadow:0 3px 0 var(--line);transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s;white-space:nowrap}
 .btn:hover{transform:translateY(-1px)}
 .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
 .btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
@@ -63,37 +68,70 @@ main{padding-block:22px 60px;padding-inline:28px;min-width:0}
 .btn.pri:active{box-shadow:0 1px 0 var(--gold-deep)}
 .btn.ok{background:var(--green);border-color:var(--green);color:var(--bg);box-shadow:0 3px 0 color-mix(in srgb,var(--green) 70%,#000)}
 .btn.sm{padding:5px 10px;font-size:12px;border-radius:10px}
+.btn.ghost{background:transparent;box-shadow:none;border-color:transparent;color:var(--blue)}
 .btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
-.kpi .v{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.1}
+.kpi .v{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
 .kpi .l{color:var(--muted);font-size:12px}
-.kpi.warn .v{color:var(--gold-ink)} .kpi.good .v{color:var(--green)}
+.kpi.warn .v{color:var(--gold-ink)} .kpi.good .v{color:var(--green)} .kpi.info .v{color:var(--blue)}
 .grid2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+.grid2e{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.stack{display:flex;flex-direction:column;gap:16px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
-.panel h2{font-size:15px;margin:0 0 10px;font-weight:600}
-.panel h2 small{color:var(--muted);font-weight:400;font-size:12px;margin-left:6px}
+.panel h2{font-size:15px;margin:0 0 10px;font-weight:600;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.panel h2 small{color:var(--muted);font-weight:400;font-size:12px}
+.panel h2 .sp{margin-left:auto}
 .list{display:flex;flex-direction:column;gap:8px}
-.item{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;text-align:left;width:100%}
-.item:hover{border-color:var(--gold-deep)}
+.item{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left;width:100%}
+button.item{cursor:pointer}
+button.item:hover{border-color:var(--gold-deep)}
 .item .t{font-weight:600;font-size:13.5px}
 .item .s{color:var(--muted);font-size:12px}
-.score{font-family:var(--mono);font-weight:700;font-size:14px;min-width:34px;text-align:right}
+.linkish{all:unset;cursor:pointer}
+.linkish:hover .t{text-decoration:underline}
+.linkish:focus-visible{outline:2px solid var(--blue)}
+.score{font-family:var(--mono);font-weight:700;font-size:14px;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
 .score.hi{color:var(--green)} .score.mid{color:var(--gold-ink)} .score.lo{color:var(--muted)}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
 .chip.due{background:var(--gold-soft);color:var(--gold-ink)}
 .chip.good{background:var(--green-soft);color:var(--green)}
 .chip.bad{background:var(--red-soft);color:var(--red)}
 .chip.info{background:var(--blue-soft);color:var(--blue)}
+.chip.new{background:var(--gold);color:#0f2540}
 .chip.ex{background:transparent;border:1px dashed var(--line);color:var(--muted)}
 .empty{color:var(--muted);font-size:13px;padding:18px;text-align:center;border:1.5px dashed var(--line);border-radius:12px}
-/* board */
-.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.hint{color:var(--muted);font-size:12px;margin:6px 0 0}
 .input,textarea,select{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13.5px;width:100%}
 .input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold-deep);box-shadow:0 0 0 3px var(--gold-soft)}
-textarea{resize:vertical;min-height:110px;line-height:1.5}
+textarea{resize:vertical;min-height:100px;line-height:1.5}
+select.inl{width:auto}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
+.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.form .full{grid-column:1/-1}
+/* alerts */
+.alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.alert{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:12px;padding:10px 12px}
+.alert.critical{border-left-color:var(--red);background:color-mix(in srgb,var(--red-soft) 55%,var(--surface))}
+.alert.warn{border-left-color:var(--gold-deep)}
+.alert.info{border-left-color:var(--blue)}
+.alert.good{border-left-color:var(--green)}
+.alert .lvl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.alert.critical .lvl{background:var(--red-soft);color:var(--red)} .alert.warn .lvl{background:var(--gold-soft);color:var(--gold-ink)}
+.alert.info .lvl{background:var(--blue-soft);color:var(--blue)} .alert.good .lvl{background:var(--green-soft);color:var(--green)}
+.alert b{font-size:13.5px;display:block}
+.alert span.s{color:var(--muted);font-size:12.5px}
+.alert .acts{display:flex;gap:6px;align-items:center}
+.xs{all:unset;cursor:pointer;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted);font-size:16px}
+.xs:hover{background:var(--surface-2)} .xs:focus-visible{outline:2px solid var(--blue)}
+/* board */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center}
 .toolbar .input{flex:1 1 240px;width:auto}
-.toolbar select{width:auto}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:12px;padding:3px;gap:2px}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.seg button:focus-visible{outline:2px solid var(--blue)}
 .boardwrap{overflow-x:auto;padding-bottom:10px}
 .board{display:grid;grid-auto-flow:column;grid-auto-columns:236px;gap:12px;align-items:start}
 .col{background:var(--surface-2);border-radius:var(--r);padding:10px;min-height:200px;border:1.5px solid transparent}
@@ -102,27 +140,73 @@ textarea{resize:vertical;min-height:110px;line-height:1.5}
 .colhead .n{font-family:var(--mono);color:var(--muted);font-size:12px}
 .sdot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin-bottom:8px;cursor:grab;box-shadow:var(--shadow);display:block;width:100%;text-align:left}
-.card:hover{border-color:var(--gold-deep)}
-.card:focus-visible{outline:2px solid var(--blue)}
+.card:hover{border-color:var(--gold-deep)} .card:focus-visible{outline:2px solid var(--blue)}
 .card .top{display:flex;justify-content:space-between;gap:8px}
 .card .t{font-weight:600;font-size:13px;line-height:1.35}
-.card .c{color:var(--muted);font-size:12px;margin:2px 0 8px}
+.card .c{color:var(--muted);font-size:12px;margin:2px 0 8px;display:block}
 .card .meta{display:flex;gap:6px;flex-wrap:wrap}
 .card.dragging{opacity:.4}
+.tl{display:flex;flex-direction:column;gap:18px}
+.tl h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px}
+.tl ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tl li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;font-size:13px;align-items:baseline}
+.tl time{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
 /* discovery */
-.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
-.queries{display:flex;flex-direction:column;gap:10px}
+.srcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.src{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;background:var(--surface)}
+.src:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+.src input{margin-top:3px;accent-color:var(--green)}
+.src b{font-size:13px;display:block}
+.src small{color:var(--muted);font-size:11.5px}
+.srcgroup{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:12px 0 6px}
+.autobar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--side);color:var(--side-ink);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.autobar b{font-size:14px;display:flex;align-items:center;gap:8px}
+.autobar p{margin:2px 0 0;color:var(--side-muted);font-size:12.5px}
+.autobar .btn{box-shadow:none}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;font-weight:600}
+.switch input{appearance:none;width:40px;height:22px;border-radius:99px;background:var(--side-muted);position:relative;cursor:pointer;transition:background .15s;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.switch input:checked{background:#1f9a63} .switch input:checked::after{transform:translateX(18px)}
+.switch input:focus-visible{outline:2px solid var(--gold)}
 .q{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .q b{font-size:13.5px}
 .q p{margin:2px 0 8px;color:var(--muted);font-size:12px}
 .links{display:flex;flex-wrap:wrap;gap:6px}
 .links a{font-size:12px;font-weight:600;text-decoration:none;padding:4px 10px;border-radius:999px;background:var(--blue-soft);color:var(--blue)}
 .links a:hover{text-decoration:underline}
-.hint{color:var(--muted);font-size:12px;margin:6px 0 0}
 .verdict{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+/* tables */
+.tblwrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+/* charts */
+.funnel{display:flex;flex-direction:column;gap:8px}
+.frow{display:grid;grid-template-columns:110px minmax(0,1fr) 44px;gap:10px;align-items:center;font-size:12.5px}
+.frow .bar{height:18px;background:var(--grid);border-radius:4px;position:relative}
+.frow .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--chart);border-radius:0 4px 4px 0;min-width:2px}
+.frow .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.vbars{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;align-items:end;height:150px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(to top,var(--grid) 0 1px,transparent 1px 37.5px)}
+.vbars .b{background:var(--chart);border-radius:4px 4px 0 0;min-height:2px;position:relative}
+.vbars .b:hover{filter:brightness(1.15)}
+.vlabels{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;font-size:10.5px;color:var(--muted);text-align:center;margin-top:4px;font-family:var(--mono)}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:6px 9px;border-radius:8px;z-index:60;max-width:240px}
+/* quest */
+.xp{display:flex;gap:14px;align-items:center}
+.xp .lvlb{width:54px;height:54px;border-radius:16px;background:var(--gold);color:#0f2540;display:grid;place-items:center;font-weight:800;font-size:20px;box-shadow:0 4px 0 var(--gold-deep);flex:none}
+.meter{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--green);transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+.quest{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface)}
+.quest .ck{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--line);display:grid;place-items:center;font-weight:800;color:transparent}
+.quest.done{background:var(--green-soft);border-color:color-mix(in srgb,var(--green) 40%,var(--line))}
+.quest.done .ck{background:var(--green);border-color:var(--green);color:var(--bg)}
+.quest b{font-size:13.5px;display:block} .quest small{color:var(--muted);font-size:12px}
+.quest .xpv{font-family:var(--mono);font-weight:700;color:var(--gold-ink);font-size:12.5px}
 /* drawer */
 .scrim{position:fixed;inset:0;background:rgba(7,16,30,.45);z-index:20}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:var(--bg);z-index:21;display:flex;flex-direction:column;border-left:1px solid var(--line);box-shadow:-10px 0 40px rgba(7,16,30,.2);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(660px,100%);background:var(--bg);z-index:21;display:flex;flex-direction:column;border-left:1px solid var(--line);box-shadow:-10px 0 40px rgba(7,16,30,.2);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .dhead{padding:18px 20px 12px;border-bottom:1px solid var(--line);display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
 .dhead h2{margin:0;font-size:19px;line-height:1.3;text-wrap:balance}
 .dhead p{margin:2px 0 0;color:var(--muted);font-size:13px}
@@ -132,9 +216,9 @@ textarea{resize:vertical;min-height:110px;line-height:1.5}
 .tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--gold)}
 .tabs button:focus-visible{outline:2px solid var(--blue)}
 .x{all:unset;cursor:pointer;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:20px;color:var(--muted);flex:none}
-.x:hover{background:var(--surface-2)}
-.kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;font-size:13px;margin-bottom:14px}
-.kv dt{color:var(--muted)} .kv dd{margin:0}
+.x:hover{background:var(--surface-2)} .x:focus-visible{outline:2px solid var(--blue)}
+.kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;font-size:13px;margin:0 0 14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;min-width:0}
 .bullets{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13px}
 .out{white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:13.5px;line-height:1.6;min-height:80px;overflow-wrap:anywhere}
 .out.wait{color:var(--muted)}
@@ -142,19 +226,24 @@ textarea{resize:vertical;min-height:110px;line-height:1.5}
 .sec h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
 .timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
 .timeline li{display:flex;gap:10px} .timeline time{font-family:var(--mono);color:var(--muted);font-size:11.5px;min-width:72px}
-.meter{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px}
-.meter i{display:block;height:100%;border-radius:99px;background:var(--green)}
-.propose{border:1.5px solid var(--gold-deep);background:var(--gold-soft);border-radius:12px;padding:12px 14px;margin-top:12px}
+.propose{border:1.5px solid var(--gold-deep);background:var(--gold-soft);border-radius:12px;padding:12px 14px}
 .propose b{display:block;margin-bottom:4px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:13px;z-index:40;box-shadow:var(--shadow)}
+/* palette */
+.pal-scrim{position:fixed;inset:0;background:rgba(7,16,30,.5);z-index:50;display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px}
+.pal{width:min(560px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(7,16,30,.35);overflow:hidden}
+.pal input{border:none;border-bottom:1px solid var(--line);border-radius:0;padding:14px 16px;font-size:15px;width:100%;background:var(--surface)}
+.pal input:focus{outline:none;box-shadow:none}
+.pal ul{list-style:none;margin:0;padding:6px;max-height:50vh;overflow-y:auto}
+.pal li button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;gap:10px;width:100%;padding:9px 12px;border-radius:10px;font-size:13.5px}
+.pal li button[aria-selected="true"],.pal li button:hover{background:var(--surface-2)}
+.pal li small{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:13px;z-index:70;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
 .banner{background:var(--blue-soft);color:var(--blue);border-radius:12px;padding:10px 14px;font-size:12.5px;margin-bottom:16px}
-label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
-.form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
-.form .full{grid-column:1/-1}
-@media (max-width:980px){.grid2,.split{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:80}
+@media (max-width:1080px){.grid2,.grid2e{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){
   .app{grid-template-columns:minmax(0,1fr)}
-  .side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;flex-direction:row;align-items:center;padding:10px 16px;gap:12px;z-index:10;overflow-x:auto}
+  .side{position:sticky;top:env(safe-area-inset-top,0px);height:auto;flex-direction:row;align-items:center;padding:10px 16px;gap:10px;z-index:10;overflow-x:auto;overflow-y:hidden}
   .brand>div:last-child,.navlabel,.sidefoot{display:none}
   .side>div{flex:none}
   .nav{flex-direction:row}
@@ -163,6 +252,9 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:60
   main{padding-inline:16px}
   .form{grid-template-columns:minmax(0,1fr)}
   .kv{grid-template-columns:96px minmax(0,1fr)}
+  .autobar{grid-template-columns:minmax(0,1fr)}
+  .alert{grid-template-columns:minmax(0,1fr) auto}
+  .alert .lvl{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -170,103 +262,131 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:60
 <div class="app">
   <aside class="side">
     <div class="brand"><div class="logo">J</div><div><b>Job Hunter OS</b><small id="who">Kamal Husaini</small></div></div>
-    <div>
-      <div class="navlabel">Workspace</div>
-      <nav class="nav" id="nav"></nav>
-    </div>
+    <div><div class="navlabel">Workspace</div><nav class="nav" id="nav1" aria-label="Workspace"></nav></div>
+    <div><div class="navlabel">Setup</div><nav class="nav" id="nav2" aria-label="Setup"></nav></div>
     <div class="sidefoot" id="sidefoot"></div>
   </aside>
   <main id="main"></main>
 </div>
 <div id="drawer-root"></div>
+<div id="pal-root"></div>
 <div id="toast-root"></div>
+<div id="tip" hidden></div>
+<canvas id="confetti" hidden></canvas>
 
 <script>
 (() => {
 "use strict";
 const DAY = 864e5;
+const TRIGGER_ID = "trig_01LhhyH2aa5xSfkKELiDKQRU";
+const REMOTE = "Claude Code Remote";
 const STATUSES = [
-  {k:"discovered",l:"Discovered",c:"#8ea0b8"},
-  {k:"shortlisted",l:"Shortlisted",c:"#7b6cd9"},
-  {k:"applied",l:"Applied",c:"#2b6fd6"},
-  {k:"acknowledged",l:"Acknowledged",c:"#3a9bb5"},
-  {k:"screening",l:"Screening",c:"#d9a521"},
-  {k:"interviewing",l:"Interviewing",c:"#e07b2a"},
-  {k:"offer",l:"Offer",c:"#1f9a63"},
-  {k:"rejected",l:"Rejected",c:"#c4473b"}
+  {k:"discovered",l:"Discovered",c:"#8ea0b8",r:0},
+  {k:"shortlisted",l:"Shortlisted",c:"#7b6cd9",r:1},
+  {k:"applied",l:"Applied",c:"#2b6fd6",r:2},
+  {k:"acknowledged",l:"Acknowledged",c:"#3a9bb5",r:3},
+  {k:"screening",l:"Screening",c:"#d9a521",r:4},
+  {k:"interviewing",l:"Interviewing",c:"#e07b2a",r:5},
+  {k:"offer",l:"Offer",c:"#1f9a63",r:6},
+  {k:"rejected",l:"Rejected",c:"#c4473b",r:-1}
 ];
 const SL = Object.fromEntries(STATUSES.map(s => [s.k, s]));
 const BOARD = STATUSES.slice(1).map(s => s.k);
 const LIVE = ["applied","acknowledged","screening","interviewing","offer"];
 const REPLIED = ["acknowledged","screening","interviewing","offer","rejected"];
-const VIEWS = [
-  {k:"today",l:"Today"},{k:"discovery",l:"Discovery"},{k:"tracker",l:"Tracker"},
-  {k:"inbox",l:"Inbox"},{k:"profile",l:"Profile & CV"}
-];
+const MODES = {any:"Semua",onsite:"Onsite",hybrid:"Hybrid",remote:"Remote"};
+const NAV1 = [["overview","Overview"],["today","Today"],["discovery","Discovery"],["tailor","Tailor & Prep"],["approvals","Approvals"],["tracker","Tracker"],["monitoring","Monitoring"]];
+const NAV2 = [["quest","Setup quest"],["knowledge","Knowledge bank"],["settings","Settings & profile"]];
 
-// Shown only when the shared store can't be reached (preview, signed out).
-const DEMO_PROFILE = {
-  name:"Kamal Husaini",
-  headline:"Digital marketing lead: paid media + funnels + CRM systems",
-  targetRoles:"Marketing Lead, Digital Marketing Manager, Performance Marketing Lead, Growth Marketing Manager",
-  locations:"Kuala Lumpur, Selangor, Remote (Malaysia)",
-  salaryFloor:"",
-  resume:"Kamal Husaini\nDigital marketer and systems builder.\n\n- Runs Meta Ads, Google Ads and TikTok Ads end to end: setup, conversion tracking, optimisation, reporting.\n- Built multi-platform sales funnels and lead intake for Rayyan Success International.\n- Built a 7-stage Takaful Agency CRM (Next.js + Supabase).\n- Trained 15+ analysts and built an admin onboarding portal at Genpact (onboarding 30% faster).\n- Delivered 24 client websites across corporate, construction, finance and travel.",
-  avoid:""
-};
+// Reliable Malaysian sources. `url` builds a search link on the real site; nothing is scraped from the page.
+const g = (site,q,loc,mode) => `https://www.google.com/search?q=${encodeURIComponent(`${site} "${q}" ${mode&&mode!=="any"?mode:""} ${loc||"Malaysia"}`.replace(/\s+/g," ").trim())}`;
+const firstLoc = loc => (loc||"Malaysia").split(",")[0].trim();
+const SOURCES = [
+  {id:"linkedin",name:"LinkedIn Jobs",kind:"Job board",note:"Paling banyak role mid–senior",url:(q,l,m)=>`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&location=${encodeURIComponent(firstLoc(l))}${{onsite:"&f_WT=1",remote:"&f_WT=2",hybrid:"&f_WT=3"}[m]||""}`},
+  {id:"jobstreet",name:"JobStreet",kind:"Job board",note:"Board utama Malaysia",url:(q,l)=>{const s=q.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); const loc=firstLoc(l); return `https://my.jobstreet.com/${s}-jobs${/malaysia|remote/i.test(loc)?"":"/in-"+loc.replace(/\s+/g,"-")}`;}},
+  {id:"indeed",name:"Indeed Malaysia",kind:"Job board",note:"Banyak listing terus dari company",url:(q,l,m)=>`https://malaysia.indeed.com/jobs?q=${encodeURIComponent(q+(m&&m!=="any"?" "+m:""))}&l=${encodeURIComponent(firstLoc(l))}`},
+  {id:"hiredly",name:"Hiredly",kind:"Job board",note:"Startup & SME Malaysia",url:(q,l,m)=>g("site:my.hiredly.com",q,l,m)},
+  {id:"maukerja",name:"Maukerja",kind:"Job board",note:"Popular untuk SME tempatan",url:(q,l,m)=>g("site:maukerja.my",q,l,m)},
+  {id:"glints",name:"Glints Malaysia",kind:"Job board",note:"Tech & digital roles",url:(q,l,m)=>g("site:glints.com/my",q,l,m)},
+  {id:"wobb",name:"WOBB",kind:"Job board",note:"Fokus culture & company profile",url:(q,l,m)=>g("site:wobb.co",q,l,m)},
+  {id:"myfuturejobs",name:"MYFutureJobs (PERKESO)",kind:"Kerajaan",note:"Portal rasmi kerajaan",url:(q,l,m)=>g("site:myfuturejobs.gov.my",q,l,m)},
+  {id:"jora",name:"Jora Malaysia",kind:"Aggregator",note:"Kumpul listing dari banyak site",url:(q,l)=>`https://my.jora.com/j?q=${encodeURIComponent(q)}&l=${encodeURIComponent(firstLoc(l))}`},
+  {id:"google",name:"Google Jobs",kind:"Aggregator",note:"Link sahaja (auto-search guna site lain)",linkOnly:true,url:(q,l,m)=>`https://www.google.com/search?q=${encodeURIComponent(`${q} jobs ${m&&m!=="any"?m:""} ${firstLoc(l)}`)}&ibp=htl;jobs`},
+  {id:"michaelpage",name:"Michael Page MY",kind:"Recruiter",note:"Mid–senior, gaji lebih telus",url:(q,l,m)=>g("site:michaelpage.com.my",q,l,m)},
+  {id:"robertwalters",name:"Robert Walters MY",kind:"Recruiter",note:"Mid–senior, MNC",url:(q,l,m)=>g("site:robertwalters.com.my",q,l,m)},
+  {id:"hays",name:"Hays Malaysia",kind:"Recruiter",note:"MNC & regional",url:(q,l,m)=>g("site:hays.com.my",q,l,m)},
+  {id:"randstad",name:"Randstad MY",kind:"Recruiter",note:"Contract & permanent",url:(q,l,m)=>g("site:randstad.com.my",q,l,m)},
+  {id:"careers",name:"Company career pages",kind:"Company site",note:"Greenhouse, Lever, Workday",url:(q,l,m)=>g("(site:boards.greenhouse.io OR site:jobs.lever.co OR site:myworkdayjobs.com)",q,l,m)}
+];
+const SRC = Object.fromEntries(SOURCES.map(s => [s.id, s]));
+const DEFAULT_SETTINGS = {sources:["linkedin","jobstreet","indeed","hiredly","maukerja","myfuturejobs","michaelpage","robertwalters","careers"],workMode:"any",extraKeywords:"",alertScore:75,followDays:7,ghostDays:21,maxPerRun:15,autoEnabled:true};
+
+// Only used when the store can't be reached (preview, signed out).
 const now0 = Date.now();
-const DEMO_JOBS = [
-  {title:"Performance Marketing Lead",company:"Contoh: Fintech Co",location:"Kuala Lumpur",source:"LinkedIn",status:"applied",score:88,verdict:"apply",appliedAt:now0-9*DAY,followUpAt:now0-2*DAY,example:true},
-  {title:"Digital Marketing Manager",company:"Contoh: Property Group",location:"Petaling Jaya",source:"Jobstreet",status:"acknowledged",score:82,verdict:"apply",appliedAt:now0-6*DAY,followUpAt:now0+1*DAY,example:true},
-  {title:"Growth Marketing Manager",company:"Contoh: E-commerce Startup",location:"Remote (MY)",source:"Company site",status:"interviewing",score:79,verdict:"apply",appliedAt:now0-14*DAY,example:true},
-  {title:"Marketing Lead (Agency)",company:"Contoh: Creative Agency",location:"Kuala Lumpur",source:"Referral",status:"shortlisted",score:91,verdict:"apply",example:true},
-  {title:"Head of Brand",company:"Contoh: FMCG",location:"Shah Alam",source:"Indeed",status:"discovered",score:54,verdict:"stretch",gaps:["Brand-led role, less performance work"],example:true}
-].map((j,i) => ({id:"demo"+i,createdAt:now0-(10-i)*DAY,reasons:[],gaps:[],activity:[],...j}));
+const DEMO = {
+  profile:{name:"Kamal Husaini",headline:"Digital marketing lead: paid media + funnels + CRM systems",targetRoles:"Marketing Lead, Digital Marketing Manager, Performance Marketing Lead",locations:"Kuala Lumpur, Selangor",resume:"Kamal Husaini\n- Runs Meta Ads, Google Ads and TikTok Ads end to end.\n- Built a 7-stage Takaful Agency CRM (Next.js + Supabase).\n- Trained 15+ analysts at Genpact (onboarding 30% faster)."},
+  jobs:[
+    {title:"Performance Marketing Lead",company:"Contoh: Fintech Co",location:"Kuala Lumpur",workMode:"hybrid",source:"LinkedIn Jobs",sourceId:"linkedin",status:"applied",score:88,verdict:"apply",appliedAt:now0-9*DAY,followUpAt:now0-2*DAY},
+    {title:"Digital Marketing Manager",company:"Contoh: Property Group",location:"Petaling Jaya",workMode:"onsite",source:"JobStreet",sourceId:"jobstreet",status:"interviewing",score:82,verdict:"apply",appliedAt:now0-12*DAY,eventAt:now0+DAY},
+    {title:"Growth Marketing Manager",company:"Contoh: E-commerce",location:"Remote (MY)",workMode:"remote",source:"Hiredly",sourceId:"hiredly",status:"discovered",origin:"auto",score:86,verdict:"apply",foundAt:now0-3600e3}
+  ].map((j,i)=>({id:"demo"+i,createdAt:now0-(5-i)*DAY,updatedAt:now0-(5-i)*DAY,reasons:[],gaps:[],activity:[],example:true,...j}))
+};
 
 const S = {
-  view: "today", open: null, tab: "fit", live: false, ready: false,
-  profile: null, jobs: [], filter: "", minScore: 0,
-  drafts: {}, stream: {}, busy: {}, plan: null, proposal: null
+  view:"today", open:null, tab:"fit", live:false, ready:false,
+  profile:null, settings:null, ui:null, plan:null, jobs:[], approvals:[], runs:[], stories:[],
+  prevSeen:null, loaded:new Set(), drafts:{}, stream:{}, busy:{}, confirm:null,
+  tf:{q:"",min:0,loc:"all"}, df:{src:"all",mode:"all",min:0,show:"all"}, trackerMode:"board", pal:null
 };
-let db = null, sample = null, downloads = null;
+let db=null, sample=null, downloads=null, mcp=null;
 
 // ---------- utils ----------
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const md = s => esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^#{1,4} (.+)$/gm,"<b>$1</b>");
-const ago = t => { if(!t) return ""; const d = Math.round((Date.now()-t)/DAY); return d<=0?"hari ni":d===1?"semalam":d+"h lepas"; };
+const ago = t => { if(!t) return ""; const m=Math.round((Date.now()-t)/6e4); if(m<60) return m<=1?"baru tadi":m+" min lepas"; const h=Math.round(m/60); if(h<24) return h+"j lepas"; const d=Math.round(h/24); return d===1?"semalam":d+"h lepas"; };
 const fmt = t => t ? new Date(t).toLocaleDateString("en-MY",{day:"numeric",month:"short"}) : "";
+const fmtT = t => t ? new Date(t).toLocaleString("en-MY",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}) : "";
+const dayKey = (t=Date.now()) => new Date(t).toISOString().slice(0,10);
 const scoreCls = n => n==null?"lo":n>=80?"hi":n>=60?"mid":"lo";
+const ST = () => ({...DEFAULT_SETTINGS, ...(S.settings||{})});
+const rank = j => Math.max(SL[j.status]?.r ?? 0, j.maxStage ?? -1, j.appliedAt ? 2 : 0);
 const isDue = j => j.followUpAt && j.followUpAt <= Date.now() && ["applied","acknowledged"].includes(j.status);
-function toast(msg){ const r=$("#toast-root"); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML="",2600); }
+const isNew = j => j.origin==="auto" && S.prevSeen!=null && (j.foundAt||j.createdAt) > S.prevSeen && j.status==="discovered";
+const realJobs = () => S.jobs.filter(j => !j.example);
+function toast(msg){ const r=$("#toast-root"); r.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast.t); toast.t=setTimeout(()=>r.innerHTML="",3000); }
 const errCopy = e => ({not_granted:"AI tak dibenarkan untuk page ni. Buka Permissions artifact untuk benarkan.",rate_limited:"Terlalu banyak request. Tunggu seminit dan cuba lagi.",cancelled:"Dibatalkan.",invalid_json:"AI bagi jawapan yang tak boleh dibaca. Tekan sekali lagi.",prompt_too_large:"Teks terlalu panjang. Pendekkan JD atau CV."}[e?.code] || "AI gagal: " + (e?.message || "cuba lagi."));
+const mcpCopy = e => ({server_not_connected:"Connector Claude Code Remote belum disambung. Tambah dalam claude.ai → Settings → Connectors.",needs_reauth:"Connector Claude Code Remote perlu disambung semula (Settings → Connectors).",not_granted:"Page ni belum dibenarkan guna Claude Code Remote. Buka Permissions artifact.",consent_required:"Benarkan Claude Code Remote untuk page ni dulu.",blocked_by_policy:"Organisasi kau block connector ni.",tool_error:"Routine tolak request: "+(e?.message||""),server_unavailable:"Connector tak respond. Cuba lagi sekejap.",cancelled:"Dibatalkan."}[e?.code] || "Tak dapat jalankan auto-search: "+(e?.message||e?.code||"ralat"));
 
-// ---------- data layer ----------
-async function saveProfile(p){ if(db){ await db.doc("profile/main").set(p); } else { S.profile=p; render(); } }
+// ---------- data layer (db when available, in-memory otherwise) ----------
+const newId = col => db ? db.collection(col).doc().id : col.slice(0,3)+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+async function put(col,id,data){ if(db) return db.doc(col+"/"+id).set(data); const a=S[col], i=a.findIndex(x=>x.id===id); const v={id,...data}; i<0?a.push(v):a[i]=v; render(); }
+async function upd(col,id,patch){ if(db) return db.doc(col+"/"+id).update(patch); const x=S[col].find(x=>x.id===id); if(x) Object.assign(x,patch); render(); }
+async function del(col,id){ if(db) return db.doc(col+"/"+id).delete(); S[col]=S[col].filter(x=>x.id!==id); render(); }
+async function putDoc(key,data){ if(db) return db.doc("profile/"+key).set(data); S[{main:"profile",settings:"settings",ui:"ui",plan:"plan"}[key]]=data; render(); }
+const saveSettings = patch => putDoc("settings",{...ST(),...patch,touchedAt:Date.now(),updatedAt:Date.now()});
+const saveUi = patch => putDoc("ui",{dismissed:{},seen:{},quests:[],...(S.ui||{}),...patch});
+
 async function addJob(data){
-  const base = {createdAt:Date.now(),updatedAt:Date.now(),status:"discovered",reasons:[],gaps:[],activity:[{t:Date.now(),text:"Ditambah ke sistem"}],...data};
-  if(db){ const ref=db.collection("jobs").doc(); await ref.set(base); return ref.id; }
-  const id="local"+Date.now(); S.jobs.push({id,...base}); render(); return id;
+  const id=newId("jobs");
+  await put("jobs",id,{createdAt:Date.now(),updatedAt:Date.now(),status:"discovered",origin:"manual",reasons:[],gaps:[],activity:[{t:Date.now(),text:"Ditambah ke sistem"}],...data});
+  return id;
 }
-async function patchJob(id,patch){
-  patch.updatedAt=Date.now();
-  if(db){ await db.doc("jobs/"+id).update(patch); }
-  else { const j=S.jobs.find(x=>x.id===id); if(j) Object.assign(j,patch); render(); }
-}
-async function removeJob(id){ if(db) await db.doc("jobs/"+id).delete(); else { S.jobs=S.jobs.filter(j=>j.id!==id); render(); } }
+const patchJob = (id,patch) => upd("jobs",id,{...patch,updatedAt:Date.now()});
 function logOf(j,text){ return [...(j.activity||[]),{t:Date.now(),text}].slice(-40); }
 async function setStatus(j,st,note){
   if(j.status===st && !note) return;
-  const p={status:st,activity:logOf(j,note||("Status → "+SL[st].l))};
-  if(st==="applied" && !j.appliedAt){ p.appliedAt=Date.now(); p.followUpAt=Date.now()+7*DAY; }
-  if(!LIVE.includes(st) || st==="interviewing" || st==="offer") p.followUpAt=null;
+  const p={status:st,activity:logOf(j,note||("Status → "+SL[st].l)),maxStage:Math.max(rank(j),SL[st].r)};
+  if(st==="applied" && !j.appliedAt){ p.appliedAt=Date.now(); p.followUpAt=Date.now()+ST().followDays*DAY; }
+  if(!["applied","acknowledged"].includes(st)) p.followUpAt=null;
   await patchJob(j.id,p);
 }
 
-// ---------- AI ----------
+// ---------- AI (sample) ----------
 function profileText(){
-  const p=S.profile||{};
-  return `CANDIDATE PROFILE\nName: ${p.name||""}\nHeadline: ${p.headline||""}\nTarget roles: ${p.targetRoles||""}\nLocations: ${p.locations||""}\nSalary floor: ${p.salaryFloor||"not stated"}\nAvoid: ${p.avoid||"none"}\n\nRESUME\n${p.resume||"(empty)"}`;
+  const p=S.profile||{}, s=ST();
+  const stories=S.stories.slice(0,10).map(x=>`- ${x.title}: ${x.situation||""} ${x.action||""} Result: ${x.result||""} ${x.metric?"("+x.metric+")":""}`).join("\n");
+  return `CANDIDATE PROFILE\nName: ${p.name||""}\nHeadline: ${p.headline||""}\nTarget roles: ${p.targetRoles||""}\nLocations: ${p.locations||""}\nPreferred work mode: ${MODES[s.workMode]||"any"}\nSalary floor: ${p.salaryFloor||"not stated"}\nAvoid: ${p.avoid||"none"}\n\nRESUME\n${p.resume||"(empty)"}${stories?`\n\nACHIEVEMENT STORIES (true, from the candidate)\n${stories}`:""}`;
 }
 const HONEST = "Rules: never invent experience, employers, dates or metrics. If a number is missing, write a placeholder like [ISI: angka sebenar]. No em dashes. Plain human voice, no buzzwords like 'passionate about leveraging'.";
 async function ai(key, run){
@@ -277,298 +397,558 @@ async function ai(key, run){
   catch(e){ if(e?.code!=="cancelled") toast(errCopy(e)); return undefined; }
   finally { S.busy[key]=false; render(); }
 }
-function rankPrompt(jd){
-  return `${profileText()}\n\nJOB POSTING (pasted by the candidate)\n${jd}\n\nYou are a blunt, fair recruiter in Malaysia. Extract the job details and score the fit of THIS candidate for THIS job from 0-100 based only on evidence in the resume. Reply with only a JSON object:\n{"title":string,"company":string,"location":string,"salary":string|null,"source":string|null,"url":string|null,"score":number,"verdict":"apply"|"stretch"|"skip","reasons":[up to 4 short strings, why it fits],"gaps":[up to 4 short strings, what is missing or risky],"keywords":[up to 8 must-have keywords from the JD]}`;
-}
+const rankPrompt = jd => `${profileText()}\n\nJOB POSTING (pasted by the candidate)\n${jd}\n\nYou are a blunt, fair recruiter in Malaysia. Extract the job details and score the fit of THIS candidate for THIS job from 0-100 based only on evidence in the resume and stories. Penalise a work-mode mismatch. Reply with only a JSON object:\n{"title":string,"company":string,"location":string,"workMode":"onsite"|"hybrid"|"remote"|"unknown","salary":string|null,"url":string|null,"score":number,"verdict":"apply"|"stretch"|"skip","reasons":[up to 4 short strings],"gaps":[up to 4 short strings],"keywords":[up to 8 must-have keywords]}`;
 async function importJD(){
   const jd=(S.drafts.jd||"").trim();
   if(jd.length<60){ toast("Paste JD penuh dulu (sekurang-kurangnya beberapa ayat)."); return; }
   const r=await ai("rank",()=>sample.json(rankPrompt(jd)));
   if(!r) return;
-  const id=await addJob({
-    title:r.title||"Untitled role",company:r.company||"",location:r.location||"",salary:r.salary||"",
-    source:r.source||S.drafts.jdSource||"Manual",url:r.url||S.drafts.jdUrl||"",
-    score:Math.max(0,Math.min(100,Number(r.score)||0)),verdict:r.verdict||"stretch",
-    reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],jd,
-    status:(Number(r.score)||0)>=75?"shortlisted":"discovered"
-  });
-  S.drafts.jd=""; S.drafts.jdUrl=""; toast(`Ranked: ${r.score}/100 · ${r.verdict}`);
+  const sid=S.drafts.jdSource||"linkedin";
+  const score=Math.max(0,Math.min(100,Number(r.score)||0));
+  const id=await addJob({title:r.title||"Untitled role",company:r.company||"",location:r.location||"",workMode:r.workMode||"unknown",salary:r.salary||"",
+    source:SRC[sid]?.name||"Manual",sourceId:sid,url:r.url||S.drafts.jdUrl||"",score,verdict:r.verdict||"stretch",
+    reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],jd,status:score>=75?"shortlisted":"discovered",maxStage:score>=75?1:0});
+  S.drafts.jd=""; S.drafts.jdUrl=""; toast(`Ranked: ${score}/100 · ${r.verdict}`);
   openJob(id,"fit");
 }
 async function rerank(j){
   if(!j.jd){ toast("Job ni tak ada JD. Paste JD dalam tab Notes dulu."); return; }
   const r=await ai("rank:"+j.id,()=>sample.json(rankPrompt(j.jd)));
-  if(r) await patchJob(j.id,{score:Number(r.score)||0,verdict:r.verdict,reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],activity:logOf(j,"Re-rank: "+r.score)});
+  if(r) await patchJob(j.id,{score:Number(r.score)||0,verdict:r.verdict,reasons:r.reasons||[],gaps:r.gaps||[],keywords:r.keywords||[],workMode:r.workMode||j.workMode,activity:logOf(j,"Re-rank: "+r.score)});
 }
 async function makePlan(){
-  const r=await ai("plan",()=>sample.json(`${profileText()}\n\nSuggest the 6 best job-search queries for this candidate on Malaysian job boards, ordered from strongest fit. Mix exact titles with adjacent titles they could realistically win. Reply with only a JSON array: [{"query":string (2-5 words, a job title or title+skill),"location":string (one city/region from their locations, or "Malaysia"),"why":string (one short sentence)}]`,{modelTier:"quick"}));
-  if(Array.isArray(r)){ S.plan=r; if(db) db.doc("profile/plan").set({items:r,at:Date.now()}).catch(()=>{}); render(); }
+  const s=ST();
+  const r=await ai("plan",()=>sample.json(`${profileText()}\n\nSuggest the 6 best job-search queries for this candidate on Malaysian job boards, ordered from strongest fit. Mix exact titles with adjacent titles they could realistically win.${s.extraKeywords?" Also consider: "+s.extraKeywords+".":""} Reply with only a JSON array: [{"query":string (2-5 words, a job title or title+skill),"location":string (one city/region from their locations, or "Malaysia"),"why":string (one short sentence, casual Malaysian Malay)}]`,{modelTier:"quick"}));
+  if(Array.isArray(r)) putDoc("plan",{items:r,at:Date.now()});
 }
 const STREAMS = {
-  resume:{field:"tailored",label:"Tailored resume",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company} (${j.location||""})\nJD:\n${j.jd||"(no JD pasted; use the title and keywords: "+(j.keywords||[]).join(", ")+")"}\n\nRewrite the resume for this job. Output plain text with these parts: SUMMARY (3 lines), KEY SKILLS (comma list mirroring the JD's language, only skills the resume supports), EXPERIENCE BULLETS (6-8 bullets, strongest-match first, reworded in the JD's terms), then WHAT I CHANGED (3 short lines) and GAPS TO ADDRESS (honest). ${HONEST}`},
-  cover:{field:"coverLetter",label:"Cover letter",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nWrite a cover letter under 280 words. Payload first: open with the specific match, then 3 short proof points tied to the JD, then one line on why this company, then a plain close. Malaysian business English. ${HONEST}`},
-  prep:{field:"prep",label:"Interview prep",prompt:j=>`${profileText()}\n\nINTERVIEW FOR: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nBuild an interview prep sheet in plain text:\n1. WHAT THEY WILL PROBE (4 bullets, from the JD)\n2. LIKELY QUESTIONS (8: mix behavioural, technical marketing, case) and for each a one-line hint of which real resume story to use (STAR)\n3. MY 60-SECOND PITCH (draft)\n4. GAPS & HOW TO ANSWER HONESTLY\n5. SMART QUESTIONS TO ASK THEM (5)\n6. RESEARCH BEFORE THE CALL (checklist; say 'unknown' instead of guessing company facts). ${HONEST}`}
+  resume:{field:"tailored",label:"Tailored resume",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company} (${j.location||""})\nJD:\n${j.jd||"(no JD pasted; use the title and keywords: "+(j.keywords||[]).join(", ")+")"}\n\nRewrite the resume for this job. Output plain text with these parts: SUMMARY (3 lines), KEY SKILLS (comma list mirroring the JD's language, only skills the resume supports), EXPERIENCE BULLETS (6-8 bullets, strongest-match first, reworded in the JD's terms, use the stories where relevant), then WHAT I CHANGED (3 short lines) and GAPS TO ADDRESS (honest). ${HONEST}`},
+  cover:{field:"coverLetter",label:"Cover letter",prompt:j=>`${profileText()}\n\nTARGET JOB: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nWrite a cover letter under 280 words. Payload first: open with the specific match, then 3 short proof points tied to the JD (prefer the stories), then one line on why this company, then a plain close. Malaysian business English. ${HONEST}`},
+  prep:{field:"prep",label:"Interview prep",prompt:j=>`${profileText()}\n\nINTERVIEW FOR: ${j.title} at ${j.company}\nJD:\n${j.jd||"(no JD; keywords: "+(j.keywords||[]).join(", ")+")"}\n\nBuild an interview prep sheet in plain text:\n1. WHAT THEY WILL PROBE (4 bullets, from the JD)\n2. LIKELY QUESTIONS (8: mix behavioural, technical marketing, case) and for each a one-line hint of which real story to use (STAR)\n3. MY 60-SECOND PITCH (draft)\n4. GAPS & HOW TO ANSWER HONESTLY\n5. SMART QUESTIONS TO ASK THEM (5)\n6. RESEARCH BEFORE THE CALL (checklist; say 'unknown' instead of guessing company facts). ${HONEST}`}
 };
 let ctl=null;
 async function runStream(j,kind){
   const cfg=STREAMS[kind], key=j.id+":"+kind;
-  ctl=new AbortController();
-  S.stream[key]="";
+  ctl=new AbortController(); S.stream[key]="";
   const r=await ai(key,()=>sample(cfg.prompt(j),{signal:ctl.signal,onText:({text})=>{S.stream[key]=text; const o=document.getElementById("out-"+kind); if(o){o.classList.remove("wait"); o.innerHTML=md(text);}}}));
   const text=r?.text||S.stream[key];
   delete S.stream[key];
-  if(text) await patchJob(j.id,{[cfg.field]:text,activity:logOf(j,cfg.label+" dijana")});
-  else render();
+  if(text) await patchJob(j.id,{[cfg.field]:text,activity:logOf(j,cfg.label+" dijana")}); else render();
 }
 async function readEmail(){
   const em=(S.drafts.email||"").trim();
   if(em.length<20){ toast("Paste email penuh dulu."); return; }
   const list=S.jobs.map(j=>({id:j.id,title:j.title,company:j.company,status:j.status}));
-  const r=await ai("email",()=>sample.json(`You update a job-application tracker from an email the candidate received.\nStatuses in order: ${STATUSES.map(s=>s.k).join(", ")}.\nTracked jobs (JSON): ${JSON.stringify(list)}\n\nEMAIL:\n${em}\n\nDecide which tracked job it is about (match on company name, sender domain, role title) and what status it implies: an auto-reply 'we received your application' = acknowledged; recruiter call / assessment / HR screen = screening; interview invite = interviewing; offer = offer; 'unfortunately'/'not moving forward' = rejected. Not job-related = status null. Reply with only JSON: {"jobId":string|null,"company":string|null,"role":string|null,"newStatus":string|null,"confidence":number 0-1,"summary":string (one line, Malay casual),"nextAction":string (one concrete step, Malay casual),"eventDate":string|null}`,{modelTier:"quick"}));
-  if(r){ S.proposal=r; render(); }
+  const r=await ai("email",()=>sample.json(`You update a job-application tracker from an email the candidate received.\nStatuses in order: ${STATUSES.map(s=>s.k).join(", ")}.\nTracked jobs (JSON): ${JSON.stringify(list)}\n\nEMAIL:\n${em}\n\nDecide which tracked job it is about (match on company name, sender domain, role title) and what status it implies: an auto-reply 'we received your application' = acknowledged; recruiter call / assessment / HR screen = screening; interview invite = interviewing; offer = offer; 'unfortunately'/'not moving forward' = rejected. Not job-related = newStatus null. Reply with only JSON: {"jobId":string|null,"company":string|null,"role":string|null,"newStatus":string|null,"confidence":number 0-1,"summary":string (one line, casual Malaysian Malay),"nextAction":string (one concrete step, casual Malaysian Malay),"eventDate":string|null (ISO 8601 date-time of any interview/deadline mentioned)}`,{modelTier:"quick"}));
+  if(!r) return;
+  if(!r.newStatus){ toast("Email ni bukan update application: "+(r.summary||"")); return; }
+  await put("approvals",newId("approvals"),{kind:"email",jobId:S.jobs.some(j=>j.id===r.jobId)?r.jobId:null,company:r.company||"",role:r.role||"",newStatus:SL[r.newStatus]?r.newStatus:"acknowledged",confidence:Number(r.confidence)||0,summary:r.summary||"",nextAction:r.nextAction||"",eventDate:r.eventDate||null,snippet:em.slice(0,280),state:"pending",createdAt:Date.now()});
+  S.drafts.email=""; toast("Masuk Approvals. Semak dan approve.");
 }
-async function approveProposal(){
-  const p=S.proposal; if(!p||!p.newStatus) return;
-  let j=S.jobs.find(x=>x.id===p.jobId);
-  if(!j){ const id=await addJob({title:p.role||"Role from email",company:p.company||"",source:"Email",status:p.newStatus,activity:[{t:Date.now(),text:"Dicipta dari email: "+(p.summary||"")}]}); S.proposal=null; S.drafts.email=""; toast("Job baru ditambah dari email"); openJob(id,"fit"); return; }
-  await setStatus(j,p.newStatus,"Email: "+(p.summary||SL[p.newStatus]?.l));
-  if(p.nextAction) await patchJob(j.id,{notes:((j.notes||"")+"\n• "+p.nextAction).trim()});
-  S.proposal=null; S.drafts.email=""; toast(`${j.company}: ${SL[p.newStatus].l}`); render();
+async function approve(a){
+  let j=S.jobs.find(x=>x.id===a.jobId);
+  const ev=a.eventDate&&!isNaN(Date.parse(a.eventDate))?Date.parse(a.eventDate):null;
+  if(!j){
+    const id=await addJob({title:a.role||"Role dari email",company:a.company||"",source:"Email",sourceId:"email",status:a.newStatus,maxStage:SL[a.newStatus].r,eventAt:ev,notes:a.nextAction?"• "+a.nextAction:"",activity:[{t:Date.now(),text:"Dicipta dari email: "+a.summary}]});
+    await upd("approvals",a.id,{state:"approved",decidedAt:Date.now(),jobId:id}); toast("Job baru ditambah dari email"); return;
+  }
+  await setStatus(j,a.newStatus,"Email: "+(a.summary||SL[a.newStatus].l));
+  const extra={}; if(ev) extra.eventAt=ev; if(a.nextAction) extra.notes=((j.notes||"")+"\n• "+a.nextAction).trim();
+  if(Object.keys(extra).length) await patchJob(j.id,extra);
+  await upd("approvals",a.id,{state:"approved",decidedAt:Date.now()});
+  toast(`${j.company}: ${SL[a.newStatus].l}`);
+}
+async function extractStories(){
+  const r=await ai("stories",()=>sample.json(`${profileText()}\n\nPull out up to 6 distinct achievement stories from the resume, for use in tailoring and interviews. Only use facts in the resume; where a number is missing use "[ISI: ...]". Reply with only a JSON array: [{"title":string (short),"situation":string,"action":string,"result":string,"metric":string|null,"tags":[up to 4 short strings]}]`));
+  if(!Array.isArray(r)) return;
+  for(const s of r) await put("stories",newId("stories"),{...s,tags:s.tags||[],createdAt:Date.now(),fromAI:true});
+  toast(`${r.length} cerita ditambah. Semak dan betulkan [ISI].`);
 }
 
-// ---------- search links (opens the real sites; nothing is scraped) ----------
-function links(q,loc){
-  const Q=encodeURIComponent(q), L=encodeURIComponent(loc||"Malaysia");
-  const slug=q.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  const locSlug=(loc&&!/malaysia|remote/i.test(loc))?"/in-"+loc.split(",")[0].trim().replace(/\s+/g,"-"):"";
+// ---------- auto-search (Claude Code Routine via connector) ----------
+const lastRun = () => [...S.runs].sort((a,b)=>(b.startedAt||0)-(a.startedAt||0))[0];
+const runStuck = r => r && r.status==="running" && Date.now()-(r.startedAt||0) > 45*6e4;
+function nextRunAt(){ const d=new Date(); const t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),23,55); return t>Date.now()?t:t+DAY; }
+async function runNow(){
+  if(!mcp){ toast("Run manual perlukan connector Claude Code Remote. Page ni tak dapat capai connector."); return; }
+  if(S.busy.run) return;
+  S.busy.run=true; render();
+  try{
+    // The routine reads lastManualAt to know this run is manual (it runs even when the daily schedule is off).
+    await saveSettings({lastManualAt:Date.now()});
+    await mcp.callTool(REMOTE,"fire_trigger",{trigger_id:TRIGGER_ID});
+    toast("Auto-search dah mula. Hasil masuk dalam ~5–15 minit.");
+  }catch(e){ toast(mcpCopy(e)); }
+  finally{ S.busy.run=false; render(); }
+}
+
+// ---------- alerts ----------
+function alertsFor(scope){
+  const s=ST(), out=[], now=Date.now(), today=dayKey();
+  const add=(scopes,a)=>{ if(scopes.includes(scope)) out.push(a); };
+  for(const j of S.jobs){
+    if(j.eventAt && j.eventAt>now-6*36e5 && j.eventAt<now+2*DAY && ["screening","interviewing","offer"].includes(j.status))
+      add(["today"],{id:`ev-${j.id}-${j.eventAt}`,lvl:"critical",title:`${j.eventAt<now+DAY&&new Date(j.eventAt).getDate()===new Date().getDate()?"Hari ni":"Tak lama lagi"}: ${SL[j.status].l} ${j.company}`,body:`${fmtT(j.eventAt)} · ${j.title}. Buka prep sheet sekarang.`,act:"open",arg:j.id,tab:"prep",label:"Buka prep"});
+    if(j.status==="offer") add(["today"],{id:`offer-${j.id}`,lvl:"good",title:`Offer dari ${j.company}`,body:"Jangan terus terima. Semak pakej dan rancang negotiate.",act:"open",arg:j.id,label:"Buka"});
+    if(["applied","acknowledged"].includes(j.status)&&j.appliedAt&&now-j.appliedAt>s.ghostDays*DAY)
+      add(["today"],{id:`ghost-${j.id}`,lvl:"info",title:`${j.company}: senyap ${Math.round((now-j.appliedAt)/DAY)} hari`,body:"Mungkin ghosted. Hantar satu follow-up terakhir, atau tutup.",act:"ghost",arg:j.id,label:"Tanda rejected"});
+    if(j.status==="shortlisted"&&(j.score||0)>=85&&now-(j.createdAt||now)>3*DAY)
+      add(["today","discovery"],{id:`stale-${j.id}`,lvl:"warn",title:`Match ${j.score} belum apply: ${j.title}`,body:`${j.company} · disenarai ${ago(j.createdAt)}. Role bagus selalu tutup cepat.`,act:"open",arg:j.id,tab:"resume",label:"Tailor & apply"});
+  }
+  const due=S.jobs.filter(isDue).length;
+  if(due) add(["today"],{id:`due-${today}`,lvl:"warn",title:`${due} follow-up due hari ni`,body:`Application yang tiada reply lepas ${s.followDays} hari.`,act:"scroll",arg:"due",label:"Tengok"});
+  const pend=S.approvals.filter(a=>a.state==="pending").length;
+  if(pend) add(["today"],{id:`appr-${pend}-${today}`,lvl:"warn",title:`${pend} cadangan AI tunggu approval`,body:"Update status dari email yang belum disemak.",act:"view",arg:"approvals",label:"Semak"});
+  const fresh=S.jobs.filter(isNew), strong=fresh.filter(j=>(j.score||0)>=s.alertScore);
+  if(fresh.length) add(["today","discovery"],{id:`new-${fresh.map(j=>j.id).sort().join("").slice(-24)}`,lvl:strong.length?"good":"info",title:`${fresh.length} job baru dari auto-search${strong.length?`, ${strong.length} match ${s.alertScore}+`:""}`,body:strong.slice(0,3).map(j=>`${j.title} (${j.company}) ${j.score}`).join(" · ")||"Semua bawah threshold alert kau.",act:"view",arg:"discovery",label:"Tengok"});
+  const lr=lastRun();
+  if(lr&&(lr.status==="failed"||runStuck(lr))) add(["today","discovery"],{id:`run-${lr.id}`,lvl:"critical",title:runStuck(lr)?"Auto-search tersangkut":"Auto-search gagal",body:(lr.error||"Run tak habis dalam 45 minit.")+" Cuba jalankan semula.",act:"run",label:"Jalankan semula"});
+  if(s.autoEnabled&&lr&&now-(lr.startedAt||0)>36*36e5) add(["discovery"],{id:`stale-run-${today}`,lvl:"warn",title:"Auto-search tak jalan lebih 36 jam",body:`Run terakhir ${ago(lr.startedAt)}. Semak Monitoring.`,act:"view",arg:"monitoring",label:"Monitoring"});
+  if(!lr) add(["discovery"],{id:"norun",lvl:"info",title:"Auto-search belum pernah jalan",body:`Jadual: setiap hari ${new Date(nextRunAt()).toLocaleTimeString("en-MY",{hour:"numeric",minute:"2-digit"})}. Boleh run sekarang.`,act:"run",label:"Run sekarang"});
+  const active=s.sources.filter(id=>SRC[id]&&!SRC[id].linkOnly).length;
+  if(active<3) add(["discovery"],{id:`src-${active}`,lvl:"warn",title:`Hanya ${active} sumber aktif`,body:"Auto-search lebih tepat dengan sekurang-kurangnya 4–5 sumber.",act:"scroll",arg:"sources",label:"Pilih sumber"});
+  const noJd=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status)&&!j.jd).length;
+  if(noJd) add(["discovery"],{id:`nojd-${noJd}`,lvl:"info",title:`${noJd} job tiada JD penuh`,body:"Ranking dan tailoring kurang tepat tanpa JD. Paste dalam tab Notes.",act:null});
+  const r=S.profile?.resume||"";
+  if(r.length<600||r.includes("[ISI")) add(["today","discovery"],{id:"profile",lvl:"warn",title:"CV dalam sistem belum lengkap",body:"Ranking, auto-search dan resume semua bergantung pada CV penuh.",act:"view",arg:"settings",label:"Isi CV"});
+  if(S.jobs.some(j=>j.example)) add(["today"],{id:"examples",lvl:"info",title:"Ada job contoh dalam sistem",body:"Padam supaya angka KPI kau tepat.",act:"clearex",label:"Padam contoh"});
+  const dis=S.ui?.dismissed||{};
+  const order={critical:0,warn:1,good:2,info:3};
+  return out.filter(a=>!dis[a.id]).sort((a,b)=>order[a.lvl]-order[b.lvl]);
+}
+const LVL = {critical:"Penting",warn:"Perhatian",good:"Bagus",info:"Info"};
+function alertsHtml(scope){
+  const a=alertsFor(scope);
+  if(!a.length) return "";
+  return `<section class="alerts" aria-label="Alerts">${a.map(x=>`<div class="alert ${x.lvl}"><span class="lvl">${LVL[x.lvl]}</span><div><b>${esc(x.title)}</b><span class="s">${esc(x.body)}</span></div><div class="acts">${x.act?`<button class="btn sm" data-act="alert" data-id="${esc(x.id)}" data-scope="${scope}">${esc(x.label)}</button>`:""}<button class="xs" data-act="dismiss-alert" data-id="${esc(x.id)}" aria-label="Tutup alert">×</button></div></div>`).join("")}</section>`;
+}
+async function doAlert(id,scope){
+  const a=alertsFor(scope).find(x=>x.id===id); if(!a) return;
+  if(a.act==="open") openJob(a.arg,a.tab);
+  else if(a.act==="view") go(a.arg);
+  else if(a.act==="run") runNow();
+  else if(a.act==="scroll") document.getElementById("sec-"+a.arg)?.scrollIntoView({behavior:"smooth",block:"start"});
+  else if(a.act==="ghost"){ const j=S.jobs.find(x=>x.id===a.arg); if(j){ await setStatus(j,"rejected","Ditutup: ghosted"); toast("Ditanda rejected"); } }
+  else if(a.act==="clearex"){ for(const j of S.jobs.filter(j=>j.example)) await del("jobs",j.id); toast("Job contoh dipadam"); }
+}
+
+// ---------- quests ----------
+function quests(){
+  const p=S.profile||{}, s=S.settings||{}, rj=realJobs();
   return [
-    ["LinkedIn",`https://www.linkedin.com/jobs/search/?keywords=${Q}&location=${L}`],
-    ["Jobstreet",`https://my.jobstreet.com/${slug}-jobs${locSlug}`],
-    ["Indeed",`https://malaysia.indeed.com/jobs?q=${Q}&l=${L}`],
-    ["Google Jobs",`https://www.google.com/search?q=${encodeURIComponent(q+" jobs "+(loc||"Malaysia"))}&ibp=htl;jobs`]
+    {id:"cv",t:"Paste CV penuh",d:"Settings & profile → CV (tanpa [ISI])",xp:50,done:(p.resume||"").length>=600&&!(p.resume||"").includes("[ISI"),go:"settings"},
+    {id:"target",t:"Set target role & lokasi",d:"Supaya auto-search tahu apa nak cari",xp:20,done:!!(p.targetRoles&&p.locations),go:"settings"},
+    {id:"sources",t:"Pilih sumber & work mode",d:"Discovery → Sumber",xp:20,done:!!s.touchedAt,go:"discovery"},
+    {id:"stories",t:"Tambah 3 cerita pencapaian",d:"Knowledge bank (AI boleh extract dari CV)",xp:40,done:S.stories.length>=3,go:"knowledge"},
+    {id:"rank",t:"Rank JD pertama",d:"Discovery → Paste JD",xp:30,done:rj.some(j=>j.origin==="manual"&&j.score!=null),go:"discovery"},
+    {id:"auto",t:"Auto-search berjaya sekali",d:"Monitoring → Run sekarang",xp:40,done:S.runs.some(r=>r.status==="succeeded"),go:"monitoring"},
+    {id:"tailor",t:"Jana resume tailored pertama",d:"Tailor & Prep",xp:40,done:rj.some(j=>j.tailored),go:"tailor"},
+    {id:"cover",t:"Jana cover letter pertama",d:"Tailor & Prep",xp:30,done:rj.some(j=>j.coverLetter),go:"tailor"},
+    {id:"apply",t:"Hantar application pertama",d:"Tanda 'Applied' pada mana-mana job",xp:50,done:rj.some(j=>j.appliedAt),go:"tracker"},
+    {id:"email",t:"Proses email recruiter pertama",d:"Approvals → Paste email",xp:30,done:S.approvals.some(a=>a.state==="approved"),go:"approvals"},
+    {id:"clean",t:"Padam job contoh",d:"Supaya KPI tepat",xp:10,done:!S.jobs.some(j=>j.example),go:"tracker"}
   ];
 }
+let questSaved="";
+function questCheck(){
+  if(!S.live||!S.uiLoaded||S.loaded.size<4) return;
+  const done=quests().filter(q=>q.done).map(q=>q.id), prev=S.ui?.quests||[];
+  const fresh=done.filter(id=>!prev.includes(id));
+  if(!fresh.length||questSaved===done.join()) return;
+  questSaved=done.join();
+  const init=!!S.ui?.questsInit;
+  saveUi({quests:done,questsInit:true});
+  if(init){ const q=quests().find(q=>q.id===fresh[0]); toast(`Quest siap: ${q.t} · +${q.xp} XP`); confetti(); }
+}
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("#confetti"), x=c.getContext("2d"); c.hidden=false; c.width=innerWidth; c.height=innerHeight;
+  const cols=["#fac748","#0f4c35","#2b6fd6","#e07b2a","#fdf9f3"];
+  const ps=Array.from({length:90},()=>({x:innerWidth/2,y:innerHeight*0.35,vx:(Math.random()-.5)*14,vy:-Math.random()*12-4,s:4+Math.random()*5,c:cols[Math.random()*5|0],r:Math.random()*6}));
+  let f=0; (function tick(){ x.clearRect(0,0,c.width,c.height); for(const p of ps){ p.vy+=.35; p.x+=p.vx; p.y+=p.vy; p.r+=.2; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/2,p.s,p.s*1.6); x.restore(); } if(++f<110) requestAnimationFrame(tick); else c.hidden=true; })();
+}
 
-// ---------- rendering ----------
+// ---------- shared rendering bits ----------
 function stats(){
-  const live=S.jobs.filter(j=>LIVE.includes(j.status)).length;
-  const appliedEver=S.jobs.filter(j=>j.appliedAt).length;
-  const replies=S.jobs.filter(j=>j.appliedAt&&REPLIED.includes(j.status)).length;
-  const due=S.jobs.filter(isDue).length;
-  return {live,replies,due,rate:appliedEver?Math.round(replies/appliedEver*100):0,appliedEver};
+  const jobs=realJobs().length?realJobs():S.jobs;
+  const live=jobs.filter(j=>LIVE.includes(j.status)).length;
+  const appliedEver=jobs.filter(j=>j.appliedAt).length;
+  const replies=jobs.filter(j=>j.appliedAt&&REPLIED.includes(j.status)).length;
+  return {live,replies,due:S.jobs.filter(isDue).length,rate:appliedEver?Math.round(replies/appliedEver*100):0,appliedEver};
+}
+function kpiRow(){
+  const st=stats();
+  return `<div class="kpis"><div class="kpi"><div class="v">${st.live}</div><div class="l">Application aktif</div></div><div class="kpi good"><div class="v">${st.replies}</div><div class="l">Replies</div></div><div class="kpi warn"><div class="v">${st.due}</div><div class="l">Follow-up due</div></div><div class="kpi info"><div class="v">${st.rate}%</div><div class="l">Response rate (${st.appliedEver} applied)</div></div></div>`;
+}
+function head(t,sub,actions=""){
+  return `<div class="head"><div><h1>${t}</h1><p>${sub}</p></div><div class="row">${actions}<button class="btn" data-act="pal" title="Cari (Ctrl/⌘ K)">Cari <kbd>⌘K</kbd></button><button class="btn pri" data-act="newsearch">New search</button></div></div>`;
+}
+const exChip = j => j.example?'<span class="chip ex">contoh</span>':"";
+const newChip = j => isNew(j)?'<span class="chip new">baru</span>':"";
+const modeChip = j => j.workMode&&j.workMode!=="unknown"?`<span class="chip">${esc(MODES[j.workMode]||j.workMode)}</span>`:"";
+function jobItem(j,extra=""){
+  return `<button class="item" data-act="open" data-id="${j.id}"><span style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""}</span> ${newChip(j)}${modeChip(j)}${extra}${exChip(j)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></button>`;
 }
 function renderNav(){
-  const st=stats();
-  const counts={today:st.due||"",discovery:S.jobs.filter(j=>j.status==="discovered").length||"",tracker:S.jobs.filter(j=>BOARD.includes(j.status)).length||"",inbox:"",profile:S.profile?.resume?"✓":"!"};
-  $("#nav").innerHTML=VIEWS.map(v=>`<button data-act="view" data-v="${v.k}" ${S.view===v.k?'aria-current="page"':""}><span>${v.l}</span><span class="n">${counts[v.k]}</span></button>`).join("");
+  const st=stats(), al=alertsFor("today").length, nw=S.jobs.filter(isNew).length, pend=S.approvals.filter(a=>a.state==="pending").length;
+  const tailorN=S.jobs.filter(j=>["shortlisted","applied","screening","interviewing"].includes(j.status)&&!(j.tailored&&j.coverLetter)).length;
+  const qs=quests(), qd=qs.filter(q=>q.done).length;
+  const c={overview:"",today:al?{v:al,hot:true}:"",discovery:nw?{v:nw,hot:true}:S.jobs.filter(j=>j.status==="discovered").length||"",tailor:tailorN||"",approvals:pend?{v:pend,hot:true}:"",tracker:st.live||"",monitoring:"",quest:qd===qs.length?"✓":`${qd}/${qs.length}`,knowledge:S.stories.length||"",settings:""};
+  const b=(list,el)=>{ $(el).innerHTML=list.map(([k,l])=>{ const n=c[k]; const hot=n&&n.hot; return `<button data-act="view" data-v="${k}" ${S.view===k?'aria-current="page"':""}><span>${l}</span><span class="n ${hot?"hot":""}">${hot?n.v:n}</span></button>`; }).join(""); };
+  b(NAV1,"#nav1"); b(NAV2,"#nav2");
   $("#who").textContent=S.profile?.name||"Setup profile";
-  $("#sidefoot").innerHTML=`<b><span class="dot ${S.live?"on":""}"></span>${S.live?"Data disimpan":"Mod demo"}</b>${S.live?"Semua job & status tersimpan dalam artifact ni.":"Store tak available di view ni. Perubahan hilang bila tutup."}<br><b style="margin-top:6px"><span class="dot ${sample?"on":""}"></span>AI ${sample?"ready":"off"}</b>`;
+  const s=ST(), lr=lastRun();
+  const dot=lr?.status==="running"&&!runStuck(lr)?"run":lr?.status==="failed"||runStuck(lr)?"bad":s.autoEnabled?"on":"";
+  $("#sidefoot").innerHTML=`<b><span class="dot ${dot}"></span>Auto-search ${s.autoEnabled?"on":"off"}</b><span>${lr?`Run terakhir ${ago(lr.startedAt)} · ${esc(runLabel(lr))}`:"Belum pernah jalan"}</span><span>${s.autoEnabled?`Seterusnya ${fmtT(nextRunAt())}`:"Hanya run manual"}</span><b style="margin-top:4px"><span class="dot ${S.live?"on":""}"></span>${S.live?"Data disimpan":"Mod demo"}</b><b><span class="dot ${sample?"on":""}"></span>AI ${sample?"ready":"off"}</b>`;
 }
-function head(t,sub,actions=""){ return `<div class="head"><div><h1>${t}</h1><p>${sub}</p></div><div class="row">${actions}</div></div>`; }
-function jobItem(j,extra=""){
-  return `<button class="item" data-act="open" data-id="${j.id}"><span style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""}</span> ${extra}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></button>`;
+const runLabel = r => runStuck(r)?"tersangkut":{running:"tengah jalan",succeeded:"berjaya",failed:"gagal",skipped:"dilangkau"}[r.status]||r.status;
+
+// ---------- views ----------
+function vOverview(){
+  const jobs=realJobs().length?realJobs():S.jobs;
+  const stages=[["Ditemui",0],["Shortlisted",1],["Applied",2],["Dapat reply",3],["Screening",4],["Interview",5],["Offer",6]];
+  const counts=stages.map(([l,r])=>[l,jobs.filter(j=>rank(j)>=r).length]);
+  const max=Math.max(1,counts[0][1]);
+  const wk=[]; const startW=(()=>{const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.getTime();})();
+  for(let i=7;i>=0;i--){ const a=startW-i*7*DAY, b=a+7*DAY; wk.push({a,n:jobs.filter(j=>j.appliedAt>=a&&j.appliedAt<b).length}); }
+  const wmax=Math.max(4,...wk.map(w=>w.n)); const top=Math.ceil(wmax/4)*4;
+  const bySrc={}; for(const j of jobs){ const k=j.source||"Lain-lain"; const o=bySrc[k]||(bySrc[k]={n:0,ap:0,rep:0,sc:0,scn:0}); o.n++; if(j.appliedAt){o.ap++; if(REPLIED.includes(j.status))o.rep++;} if(j.score!=null){o.sc+=j.score;o.scn++;} }
+  const srcRows=Object.entries(bySrc).sort((a,b)=>b[1].n-a[1].n);
+  const qs=quests(), xp=qs.filter(q=>q.done).reduce((a,q)=>a+q.xp,0), tot=qs.reduce((a,q)=>a+q.xp,0);
+  return head("Overview",`Gambaran besar pencarian kerja kau${realJobs().length?"":" (guna job contoh)"}`)+kpiRow()+
+  (xp<tot?`<button class="item" data-act="view" data-v="quest" style="margin-bottom:16px"><span style="flex:1;min-width:0"><span class="t">Setup quest: ${qs.filter(q=>q.done).length}/${qs.length} siap · ${xp}/${tot} XP</span><div class="meter"><i style="width:${Math.round(xp/tot*100)}%"></i></div></span><span class="chip due">Sambung →</span></button>`:"")+
+  `<div class="grid2e"><div class="panel"><h2>Funnel <small>berapa job sampai setiap peringkat</small></h2><div class="funnel">${counts.map(([l,n],i)=>`<div class="frow" data-tip="${esc(l)}: ${n} job${i?` (${Math.round(n/Math.max(1,counts[i-1][1])*100)}% dari peringkat sebelum)`:""}"><span>${l}</span><span class="bar"><i style="width:${n/max*100}%"></i></span><span class="v">${n}</span></div>`).join("")}</div></div>
+  <div class="panel"><h2>Application seminggu <small>8 minggu terakhir</small></h2><div style="display:grid;grid-template-columns:24px minmax(0,1fr);gap:6px"><div style="display:flex;flex-direction:column;justify-content:space-between;height:150px;font-size:10.5px;color:var(--muted);font-family:var(--mono);text-align:right">${[top,top*.75,top/2,top/4,0].map(v=>`<span>${v}</span>`).join("")}</div><div><div class="vbars">${wk.map(w=>`<div class="b" style="height:${w.n/top*100}%" data-tip="Minggu ${fmt(w.a)}: ${w.n} application"></div>`).join("")}</div><div class="vlabels">${wk.map(w=>`<span>${fmt(w.a).split(" ")[0]}/${new Date(w.a).getMonth()+1}</span>`).join("")}</div></div></div></div></div>
+  <div class="panel" style="margin-top:16px"><h2>Prestasi ikut sumber</h2><div class="tblwrap"><table><thead><tr><th>Sumber</th><th class="num">Job</th><th class="num">Applied</th><th class="num">Reply</th><th class="num">Response</th><th class="num">Purata fit</th></tr></thead><tbody>${srcRows.map(([k,o])=>`<tr><td>${esc(k)}</td><td class="num">${o.n}</td><td class="num">${o.ap}</td><td class="num">${o.rep}</td><td class="num">${o.ap?Math.round(o.rep/o.ap*100)+"%":"–"}</td><td class="num">${o.scn?Math.round(o.sc/o.scn):"–"}</td></tr>`).join("")||`<tr><td colspan="6" class="hint">Belum ada data.</td></tr>`}</tbody></table></div></div>`;
 }
-function viewToday(){
+function vToday(){
   const st=stats();
   const due=S.jobs.filter(isDue).sort((a,b)=>a.followUpAt-b.followUpAt);
-  const fresh=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status)).sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,6);
-  const hot=S.jobs.filter(j=>["screening","interviewing","offer"].includes(j.status));
+  const up=S.jobs.filter(j=>j.eventAt&&j.eventAt>Date.now()-6*36e5).sort((a,b)=>a.eventAt-b.eventAt).slice(0,5);
+  const best=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status)).sort((a,b)=>(isNew(b)-isNew(a))||((b.score||0)-(a.score||0))).slice(0,6);
   const d=new Date().toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long"});
-  return head("Today",`${d} · ${st.live} application aktif · ${st.due} follow-up due`,`<button class="btn" data-act="view" data-v="inbox">Update dari email</button><button class="btn pri" data-act="view" data-v="discovery">+ Cari job</button>`)+
-  `<div class="kpis">
-    <div class="kpi"><div class="v">${st.live}</div><div class="l">Application aktif</div></div>
-    <div class="kpi good"><div class="v">${st.replies}</div><div class="l">Replies</div></div>
-    <div class="kpi warn"><div class="v">${st.due}</div><div class="l">Follow-up due</div></div>
-    <div class="kpi"><div class="v">${st.rate}%</div><div class="l">Response rate (${st.appliedEver} applied)</div></div>
+  return head("Today",`${d} · ${st.live} application aktif · ${st.due} follow-up due`)+alertsHtml("today")+
+  `<div class="grid2"><div class="stack">
+    <div class="panel" id="sec-due"><h2>Follow-up hari ni <small>${ST().followDays} hari lepas apply, tiada reply</small></h2>
+      <div class="list">${due.length?due.map(j=>`<div class="item"><button class="linkish" data-act="open" data-id="${j.id}" style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)} · apply ${fmt(j.appliedAt)}</span></button><button class="btn sm ok" data-act="followed" data-id="${j.id}">Dah follow-up</button></div>`).join(""):`<div class="empty">Tiada follow-up due. Bagus.</div>`}</div></div>
+    <div class="panel"><h2>Interview & tarikh penting</h2><div class="list">${up.length?up.map(j=>jobItem(j,`<span class="chip info">${fmtT(j.eventAt)}</span>`)).join(""):`<div class="empty">Tiada tarikh. Set tarikh interview dalam drawer job (tab Fit).</div>`}</div></div>
   </div>
-  <div class="grid2">
-    <div class="panel"><h2>Follow-up hari ni <small>7 hari lepas apply, tiada reply</small></h2>
-      <div class="list">${due.length?due.map(j=>`<div class="item" style="cursor:default"><span style="min-width:0"><span class="t">${esc(j.title)}</span><br><span class="s">${esc(j.company)} · apply ${fmt(j.appliedAt)}</span></span><span class="row"><button class="btn sm" data-act="open" data-id="${j.id}">Buka</button><button class="btn sm ok" data-act="followed" data-id="${j.id}">Dah follow-up</button></span></div>`).join(""):`<div class="empty">Tiada follow-up due. Bagus.</div>`}</div>
-    </div>
-    <div class="panel"><h2>Match terbaik belum apply</h2>
-      <div class="list">${fresh.length?fresh.map(j=>jobItem(j,j.example?'<span class="chip ex">contoh</span>':"")).join(""):`<div class="empty">Belum ada job. Pergi Discovery dan paste JD pertama.</div>`}</div>
-    </div>
-  </div>
-  ${hot.length?`<div class="panel" style="margin-top:16px"><h2>Tengah bergerak</h2><div class="list">${hot.map(j=>jobItem(j,`<span class="chip info">${SL[j.status].l}</span>`)).join("")}</div></div>`:""}`;
+  <div class="panel"><h2>Match terbaik belum apply</h2><div class="list">${best.length?best.map(j=>jobItem(j)).join(""):`<div class="empty">Belum ada job. Pergi Discovery.</div>`}</div></div></div>`;
 }
-function viewDiscovery(){
-  const disc=S.jobs.filter(j=>j.status==="discovered"||j.status==="shortlisted").sort((a,b)=>(b.score||0)-(a.score||0));
-  const plan=S.plan;
-  return head("Discovery","AI cadangkan apa nak cari ikut CV kau, kau buka site sebenar, paste JD yang menarik, AI rank.")+
-  `<div class="split">
-    <div class="panel"><h2>1 · Apa patut aku cari? <small>ikut CV</small></h2>
-      <div class="row" style="margin-bottom:12px"><button class="btn pri" data-act="plan" ${S.busy.plan?"disabled":""}>${S.busy.plan?"AI tengah fikir…":plan?"Jana semula":"Jana search plan"}</button></div>
-      <div class="queries">${plan?plan.map(q=>`<div class="q"><b>${esc(q.query)}</b> <span class="chip">${esc(q.location)}</span><p>${esc(q.why)}</p><div class="links">${links(q.query,q.location).map(([n,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div></div>`).join(""):`<div class="empty">Tekan butang. AI baca CV kau dan bagi 6 search query + link terus ke LinkedIn, Jobstreet, Indeed dan Google Jobs.</div>`}</div>
-    </div>
-    <div class="panel"><h2>2 · Paste JD, AI rank</h2>
-      <label class="f" for="jd">Job description penuh
-      <textarea id="jd" data-draft="jd" rows="9" placeholder="Copy semua teks iklan kerja (title, company, requirement) dan paste sini…">${esc(S.drafts.jd||"")}</textarea></label>
-      <div class="form" style="margin-top:10px">
-        <label class="f" for="jdUrl">Link iklan (optional)<input class="input" id="jdUrl" data-draft="jdUrl" value="${esc(S.drafts.jdUrl||"")}" placeholder="https://…"></label>
-        <label class="f" for="jdSource">Source<select id="jdSource" data-draft="jdSource">${["LinkedIn","Jobstreet","Indeed","Company site","Referral","Other"].map(s=>`<option ${S.drafts.jdSource===s?"selected":""}>${s}</option>`).join("")}</select></label>
-      </div>
-      <div class="row" style="margin-top:12px"><button class="btn pri" data-act="import" ${S.busy.rank?"disabled":""}>${S.busy.rank?"Tengah rank…":"Rank & simpan"}</button></div>
-      <p class="hint">Score 75+ terus masuk Shortlisted dalam Tracker.</p>
-    </div>
-  </div>
-  <div class="panel"><h2>Senarai ranked <small>${disc.length} job</small></h2>
-    <div class="list">${disc.length?disc.map(j=>`<div class="item" style="cursor:default"><span style="min-width:0;flex:1"><button data-act="open" data-id="${j.id}" style="all:unset;cursor:pointer"><span class="t">${esc(j.title)}</span></button><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""} · ${esc(j.source||"")}</span> ${j.example?'<span class="chip ex">contoh</span>':""} <span class="verdict" style="color:${j.verdict==="apply"?"var(--green)":j.verdict==="skip"?"var(--red)":"var(--gold-ink)"}">${esc(j.verdict||"")}</span></span><span class="row"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span>${j.status==="discovered"?`<button class="btn sm" data-act="status" data-id="${j.id}" data-s="shortlisted">Shortlist</button>`:`<span class="chip good">Shortlisted</span>`}</span></div>`).join(""):`<div class="empty">Belum ada. Paste JD pertama di atas.</div>`}</div>
-  </div>`;
+function vDiscovery(){
+  const s=ST(), lr=lastRun(), f=S.df;
+  let list=S.jobs.filter(j=>["discovered","shortlisted"].includes(j.status));
+  if(f.src!=="all") list=list.filter(j=>j.sourceId===f.src);
+  if(f.mode!=="all") list=list.filter(j=>j.workMode===f.mode);
+  if(f.min) list=list.filter(j=>(j.score||0)>=f.min);
+  if(f.show==="new") list=list.filter(isNew);
+  list.sort((a,b)=>(isNew(b)-isNew(a))||((b.score||0)-(a.score||0)));
+  const groups=[...new Set(SOURCES.map(x=>x.kind))];
+  const plan=S.plan?.items;
+  const enabled=s.sources.filter(id=>SRC[id]);
+  const running=lr?.status==="running"&&!runStuck(lr);
+  return head("Discovery","Auto-search cari setiap pagi. Kau pun boleh cari manual dan paste JD.")+alertsHtml("discovery")+
+  `<div class="autobar"><div><b><span class="dot ${running?"run":s.autoEnabled?"on":""}"></span>${running?"Auto-search tengah jalan…":`Auto-search ${s.autoEnabled?"aktif":"off"}`}</b><p>${enabled.filter(id=>!SRC[id].linkOnly).length} sumber · ${MODES[s.workMode]} · ${lr?`run terakhir ${ago(lr.startedAt)} (${esc(runLabel(lr))}${lr.added!=null?`, +${lr.added} job`:""})`:"belum pernah jalan"}${s.autoEnabled?` · seterusnya ${fmtT(nextRunAt())}`:""}</p></div>
+   <div class="row"><label class="switch"><input type="checkbox" id="autoEnabled" ${s.autoEnabled?"checked":""}> Harian</label><button class="btn pri" data-act="run" ${S.busy.run||running?"disabled":""}>${S.busy.run?"Memulakan…":running?"Tengah jalan":"Run sekarang"}</button></div></div>
+  <div class="panel" id="sec-sources" style="margin-bottom:16px"><h2>Sumber & penapis <small>${enabled.length} dipilih</small><span class="sp row"><label class="f" for="workMode" style="flex-direction:row;align-items:center;gap:8px">Work mode <select id="workMode" class="inl">${Object.entries(MODES).map(([k,l])=>`<option value="${k}" ${s.workMode===k?"selected":""}>${k==="any"?"Semua (onsite/hybrid/remote)":l}</option>`).join("")}</select></label></span></h2>
+   ${groups.map(gk=>`<div class="srcgroup">${gk}</div><div class="srcgrid">${SOURCES.filter(x=>x.kind===gk).map(x=>`<label class="src"><input type="checkbox" data-src="${x.id}" ${s.sources.includes(x.id)?"checked":""}><span><b>${esc(x.name)}</b><small>${esc(x.note)}</small></span></label>`).join("")}</div>`).join("")}
+   <div class="form" style="margin-top:14px"><label class="f full" for="extraKeywords">Keyword tambahan (optional)<input class="input" id="extraKeywords" data-draft="extraKeywords" value="${esc(S.drafts.extraKeywords??s.extraKeywords)}" placeholder="cth: fintech, B2B, Meta Ads, bahasa Mandarin tak perlu"></label></div>
+   <div class="row" style="margin-top:10px"><button class="btn sm" data-act="savekw">Simpan keyword</button><span class="hint" style="margin:0">Auto-search guna sumber, work mode dan keyword ni.</span></div></div>
+  <div class="grid2e" style="margin-bottom:16px">
+   <div class="panel"><h2>Cari manual <small>link terus ke sumber yang dipilih</small><span class="sp"><button class="btn sm" data-act="plan" ${S.busy.plan?"disabled":""}>${S.busy.plan?"AI tengah fikir…":plan?"Jana semula":"Jana search plan"}</button></span></h2>
+    <div class="list">${plan?plan.map(q=>`<div class="q"><b>${esc(q.query)}</b> <span class="chip">${esc(q.location)}</span><p>${esc(q.why)}</p><div class="links">${enabled.map(id=>`<a href="${esc(SRC[id].url(q.query,q.location,s.workMode))}" target="_blank" rel="noopener">${esc(SRC[id].name)} ↗</a>`).join("")}</div></div>`).join(""):`<div class="empty">AI baca CV kau dan bagi 6 search query, dengan link ke setiap sumber yang kau pilih.</div>`}</div></div>
+   <div class="panel"><h2>Paste JD, AI rank</h2>
+    <label class="f" for="jd">Job description penuh<textarea id="jd" data-draft="jd" rows="8" placeholder="Copy semua teks iklan kerja dan paste sini…">${esc(S.drafts.jd||"")}</textarea></label>
+    <div class="form" style="margin-top:10px"><label class="f" for="jdUrl">Link iklan<input class="input" id="jdUrl" data-draft="jdUrl" value="${esc(S.drafts.jdUrl||"")}" placeholder="https://…"></label>
+    <label class="f" for="jdSource">Sumber<select id="jdSource" data-draft="jdSource">${SOURCES.map(x=>`<option value="${x.id}" ${S.drafts.jdSource===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}<option value="referral" ${S.drafts.jdSource==="referral"?"selected":""}>Referral</option></select></label></div>
+    <div class="row" style="margin-top:12px"><button class="btn pri" data-act="import" ${S.busy.rank?"disabled":""}>${S.busy.rank?"Tengah rank…":"Rank & simpan"}</button><span class="hint" style="margin:0">Score 75+ terus Shortlisted.</span></div></div></div>
+  <div class="panel"><h2>Hasil carian <small>${list.length} job</small></h2>
+   <div class="toolbar"><select id="df_src" class="inl" aria-label="Sumber"><option value="all">Semua sumber</option>${SOURCES.map(x=>`<option value="${x.id}" ${f.src===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select>
+   <select id="df_mode" class="inl" aria-label="Work mode"><option value="all">Semua mode</option>${["onsite","hybrid","remote"].map(k=>`<option value="${k}" ${f.mode===k?"selected":""}>${MODES[k]}</option>`).join("")}</select>
+   <select id="df_min" class="inl" aria-label="Fit minimum"><option value="0">Semua fit</option>${[60,75,85].map(n=>`<option value="${n}" ${f.min==n?"selected":""}>Fit ${n}+</option>`).join("")}</select>
+   <div class="seg" role="group" aria-label="Papar"><button data-act="dfshow" data-v="all" aria-pressed="${f.show==="all"}">Semua</button><button data-act="dfshow" data-v="new" aria-pressed="${f.show==="new"}">Baru je</button></div></div>
+   <div class="list">${list.length?list.map(j=>`<div class="item"><span style="min-width:0;flex:1"><button class="linkish" data-act="open" data-id="${j.id}"><span class="t">${esc(j.title)}</span></button><br><span class="s">${esc(j.company)}${j.location?" · "+esc(j.location):""} · ${esc(j.source||"")}${j.postedAt?" · "+esc(j.postedAt):""}</span> ${newChip(j)}${modeChip(j)}${j.origin==="auto"?'<span class="chip info">auto</span>':""}${exChip(j)} <span class="verdict" style="color:${j.verdict==="apply"?"var(--green)":j.verdict==="skip"?"var(--red)":"var(--gold-ink)"}">${esc(j.verdict||"")}</span></span><span class="row"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span>${j.status==="discovered"?`<button class="btn sm" data-act="status" data-id="${j.id}" data-s="shortlisted">Shortlist</button><button class="xs" data-act="status" data-id="${j.id}" data-s="rejected" aria-label="Buang" title="Tak berminat">×</button>`:`<span class="chip good">Shortlisted</span>`}</span></div>`).join(""):`<div class="empty">Tiada job padan penapis ni.</div>`}</div></div>`;
 }
-function viewTracker(){
-  const f=S.filter.toLowerCase();
-  const jobs=S.jobs.filter(j=>(!f||(j.title+" "+j.company+" "+(j.location||"")).toLowerCase().includes(f))&&(j.score??0)>=S.minScore);
+function vTailor(){
+  const order={interviewing:0,screening:1,shortlisted:2,applied:3,acknowledged:4,offer:5};
+  const jobs=S.jobs.filter(j=>j.status in order).sort((a,b)=>order[a.status]-order[b.status]||(b.score||0)-(a.score||0));
+  const ck=(ok,l,j,t)=>`<button class="chip ${ok?"good":""}" data-act="open" data-id="${j.id}" data-tab="${t}" style="border:none;cursor:pointer">${ok?"✓":"+"} ${l}</button>`;
+  const next=jobs.find(j=>j.status==="shortlisted"&&!j.tailored)||jobs.find(j=>["screening","interviewing"].includes(j.status)&&!j.prep);
+  return head("Tailor & Prep","Resume, cover letter dan interview prep untuk setiap job, dalam satu tempat.")+
+  (next?`<div class="propose" style="margin-bottom:16px"><b>Seterusnya: ${esc(next.title)} · ${esc(next.company)}</b>${next.status==="shortlisted"?"Shortlisted tapi belum ada resume tailored.":"Interview datang, prep sheet belum ada."}<div class="row" style="margin-top:8px"><button class="btn pri sm" data-act="open" data-id="${next.id}" data-tab="${next.status==="shortlisted"?"resume":"prep"}">${next.status==="shortlisted"?"Jana resume":"Jana prep"}</button></div></div>`:"")+
+  `<div class="panel"><div class="tblwrap"><table><thead><tr><th>Job</th><th>Status</th><th class="num">Fit</th><th>Dokumen</th></tr></thead><tbody>${jobs.map(j=>`<tr><td><button class="linkish" data-act="open" data-id="${j.id}"><span class="t" style="font-weight:600">${esc(j.title)}</span></button><br><span class="hint" style="margin:0">${esc(j.company)}</span> ${exChip(j)}</td><td><span class="chip"><span class="sdot" style="background:${SL[j.status].c}"></span>${SL[j.status].l}</span></td><td class="num"><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></td><td><div class="row" style="gap:6px">${ck(j.tailored,"Resume",j,"resume")}${ck(j.coverLetter,"Cover letter",j,"cover")}${ck(j.prep,"Prep",j,"prep")}</div></td></tr>`).join("")||`<tr><td colspan="4"><div class="empty">Shortlist job dulu di Discovery.</div></td></tr>`}</tbody></table></div></div>`;
+}
+function vApprovals(){
+  const pend=S.approvals.filter(a=>a.state==="pending").sort((a,b)=>b.createdAt-a.createdAt);
+  const done=S.approvals.filter(a=>a.state!=="pending").sort((a,b)=>(b.decidedAt||0)-(a.decidedAt||0)).slice(0,10);
+  const card=a=>{ const j=S.jobs.find(x=>x.id===a.jobId); const c=Math.round((a.confidence||0)*100);
+    return `<div class="propose"><b>${esc(j?`${j.title} · ${j.company}`:`Job baru: ${a.role||"?"} · ${a.company||"?"}`)}</b>${j?`<span class="chip">${SL[j.status].l}</span> → `:""}<span class="chip info">${esc(SL[a.newStatus]?.l||a.newStatus)}</span>
+    <p style="margin:8px 0 4px">${esc(a.summary)}</p><p style="margin:0;font-size:12.5px"><b style="display:inline">Next:</b> ${esc(a.nextAction)}${a.eventDate?` · <b style="display:inline">Tarikh:</b> ${esc(isNaN(Date.parse(a.eventDate))?a.eventDate:fmtT(Date.parse(a.eventDate)))}`:""}</p>
+    <div class="meter" data-tip="Confidence AI ${c}%"><i style="width:${c}%;${c<80?"background:var(--gold-deep)":""}"></i></div><p class="hint">Confidence ${c}%${c<80?" · rendah, semak betul-betul":""} · ${ago(a.createdAt)}</p>
+    <div class="row" style="margin-top:8px"><button class="btn ok sm" data-act="approve" data-id="${a.id}">${j?"Approve":"Tambah job baru"}</button><button class="btn sm" data-act="reject-appr" data-id="${a.id}">Abaikan</button></div></div>`; };
+  return head("Approvals","Semua cadangan AI tunggu kelulusan kau sebelum mengubah apa-apa.")+
+  `<div class="banner">Paste email secara manual buat masa ni. Versi Vercel nanti guna Google Apps Script untuk baca Gmail sendiri dan hantar cadangan ke sini.</div>
+  <div class="grid2e"><div class="panel"><h2>Inbox: paste email</h2><label class="f" for="email">Subject + isi email<textarea id="email" data-draft="email" rows="11" placeholder="From: talent@company.com&#10;Subject: Interview invitation – Marketing Lead&#10;&#10;Hi Kamal, …">${esc(S.drafts.email||"")}</textarea></label>
+   <div class="row" style="margin-top:12px"><button class="btn pri" data-act="email" ${S.busy.email?"disabled":""}>${S.busy.email?"AI tengah baca…":"Baca email"}</button></div></div>
+  <div class="panel"><h2>Tunggu approval <small>${pend.length}</small></h2><div class="list">${pend.length?pend.map(card).join(""):`<div class="empty">Tiada apa-apa tunggu approval.</div>`}</div>
+  ${done.length?`<h2 style="margin-top:18px">Keputusan terkini</h2><ul class="timeline">${done.map(a=>`<li><time>${fmt(a.decidedAt)}</time><span>${a.state==="approved"?"✓":"✕"} ${esc(a.company||"")} → ${esc(SL[a.newStatus]?.l||"")}: ${esc(a.summary)}</span></li>`).join("")}</ul>`:""}</div></div>`;
+}
+function vTracker(){
+  const f=S.tf, q=f.q.toLowerCase();
+  const jobs=S.jobs.filter(j=>(!q||(j.title+" "+j.company+" "+(j.location||"")).toLowerCase().includes(q))&&(j.score??0)>=f.min&&(f.loc==="all"||(j.location||"")===f.loc));
+  const locs=[...new Set(S.jobs.map(j=>j.location).filter(Boolean))].sort();
   const st=stats();
-  return head("Tracker",`${st.live} application aktif · ${st.due} follow-up due`,`<button class="btn pri" data-act="view" data-v="discovery">+ Tambah job</button>`)+
-  `<div class="toolbar"><input class="input" id="filter" data-draft="filter" placeholder="Cari role, company atau lokasi…" value="${esc(S.filter)}" aria-label="Filter">
-  <select id="minScore" aria-label="Minimum fit"><option value="0">Semua fit</option>${[60,75,85].map(n=>`<option value="${n}" ${S.minScore==n?"selected":""}>Fit ${n}+</option>`).join("")}</select></div>
-  <div class="boardwrap"><div class="board">${BOARD.map(k=>{
-    const cs=jobs.filter(j=>j.status===k).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-    return `<section class="col" data-drop="${k}" aria-label="${SL[k].l}"><div class="colhead"><span><span class="sdot" style="background:${SL[k].c}"></span>${SL[k].l}</span><span class="n">${cs.length}</span></div>
-    ${cs.map(j=>`<button class="card" draggable="true" data-act="open" data-id="${j.id}"><span class="top"><span class="t">${esc(j.title)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></span><span class="c" style="display:block">${esc(j.company)}</span><span class="meta">${isDue(j)?'<span class="chip due">follow-up due</span>':j.followUpAt&&LIVE.includes(j.status)?`<span class="chip">follow-up ${fmt(j.followUpAt)}</span>`:""}<span class="chip">${ago(j.updatedAt||j.createdAt)}</span>${j.example?'<span class="chip ex">contoh</span>':""}</span></button>`).join("")}
-    </section>`;}).join("")}</div></div>
-  <p class="hint">Drag kad antara column untuk tukar status, atau buka kad dan pilih status.</p>`;
+  let body;
+  if(S.trackerMode==="board"){
+    body=`<div class="boardwrap"><div class="board">${BOARD.map(k=>{ const cs=jobs.filter(j=>j.status===k).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+      return `<section class="col" data-drop="${k}" aria-label="${SL[k].l}"><div class="colhead"><span><span class="sdot" style="background:${SL[k].c}"></span>${SL[k].l}</span><span class="n">${cs.length}</span></div>${cs.map(j=>`<button class="card" draggable="true" data-act="open" data-id="${j.id}"><span class="top"><span class="t">${esc(j.title)}</span><span class="score ${scoreCls(j.score)}">${j.score??"–"}</span></span><span class="c">${esc(j.company)}</span><span class="meta">${isDue(j)?'<span class="chip due">follow-up due</span>':j.followUpAt?`<span class="chip">follow-up ${fmt(j.followUpAt)}</span>`:""}${j.eventAt&&j.eventAt>Date.now()?`<span class="chip info">${fmt(j.eventAt)}</span>`:""}<span class="chip">${ago(j.updatedAt||j.createdAt)}</span>${exChip(j)}</span></button>`).join("")}</section>`;}).join("")}</div></div><p class="hint">Drag kad antara column untuk tukar status.</p>`;
+  } else {
+    const ev=[]; for(const j of jobs) for(const a of (j.activity||[])) ev.push({...a,j});
+    ev.sort((a,b)=>b.t-a.t);
+    const byDay={}; for(const e of ev.slice(0,120)){ (byDay[dayKey(e.t)]=byDay[dayKey(e.t)]||[]).push(e); }
+    body=`<div class="panel"><div class="tl">${Object.entries(byDay).map(([d,es])=>`<div><h3>${new Date(d).toLocaleDateString("ms-MY",{weekday:"short",day:"numeric",month:"short"})}</h3><ul>${es.map(e=>`<li><time>${new Date(e.t).toLocaleTimeString("en-MY",{hour:"numeric",minute:"2-digit"})}</time><span><button class="linkish" data-act="open" data-id="${e.j.id}"><b>${esc(e.j.company||e.j.title)}</b></button> · ${esc(e.text)}</span></li>`).join("")}</ul></div>`).join("")||`<div class="empty">Belum ada aktiviti.</div>`}</div></div>`;
+  }
+  return head("Tracker",`${st.live} application aktif · ${st.due} follow-up due`)+kpiRow()+
+  `<div class="toolbar"><input class="input" id="tf_q" data-draft="tf_q" placeholder="Cari role, company atau lokasi…" value="${esc(f.q)}" aria-label="Cari">
+  <select id="tf_loc" class="inl" aria-label="Lokasi"><option value="all">Semua lokasi</option>${locs.map(l=>`<option ${f.loc===l?"selected":""}>${esc(l)}</option>`).join("")}</select>
+  <select id="tf_min" class="inl" aria-label="Fit"><option value="0">Semua fit</option>${[60,75,85].map(n=>`<option value="${n}" ${f.min==n?"selected":""}>Fit ${n}+</option>`).join("")}</select>
+  <div class="seg" role="group" aria-label="Paparan"><button data-act="tmode" data-v="board" aria-pressed="${S.trackerMode==="board"}">Board</button><button data-act="tmode" data-v="timeline" aria-pressed="${S.trackerMode==="timeline"}">Timeline</button></div></div>`+body;
 }
-function viewInbox(){
-  const p=S.proposal, j=p&&S.jobs.find(x=>x.id===p.jobId);
-  return head("Inbox","Paste email berkaitan kerja. AI cadang status baru, kau approve.")+
-  `<div class="banner">Prototype: paste email secara manual. Versi Vercel nanti guna Google Apps Script untuk baca Gmail sendiri setiap 15 minit.</div>
-  <div class="split"><div class="panel"><h2>Email</h2>
-    <label class="f" for="email">Subject + isi email<textarea id="email" data-draft="email" rows="11" placeholder="From: talent@company.com&#10;Subject: Interview invitation – Marketing Lead&#10;&#10;Hi Kamal, …">${esc(S.drafts.email||"")}</textarea></label>
-    <div class="row" style="margin-top:12px"><button class="btn pri" data-act="email" ${S.busy.email?"disabled":""}>${S.busy.email?"AI tengah baca…":"Baca email"}</button></div>
-  </div>
-  <div class="panel"><h2>Cadangan AI</h2>
-  ${!p?`<div class="empty">Cadangan update status akan muncul sini.</div>`:
-   !p.newStatus?`<div class="propose"><b>Bukan email berkaitan application.</b>${esc(p.summary||"")}</div><div class="row" style="margin-top:10px"><button class="btn sm" data-act="dismiss">Tutup</button></div>`:
-   `<div class="propose"><b>${esc(j?`${j.title} · ${j.company}`:`Job baru: ${p.role||"?"} · ${p.company||"?"}`)}</b>
-   ${j?`<span class="chip">${SL[j.status].l}</span> → `:""}<span class="chip info">${esc(SL[p.newStatus]?.l||p.newStatus)}</span>
-   <p style="margin:8px 0 4px">${esc(p.summary||"")}</p>
-   <p style="margin:0;font-size:12.5px"><b style="display:inline">Next:</b> ${esc(p.nextAction||"")}${p.eventDate?` · <b style="display:inline">Tarikh:</b> ${esc(p.eventDate)}`:""}</p>
-   <div class="meter" title="Confidence"><i style="width:${Math.round((p.confidence||0)*100)}%;${(p.confidence||0)<.8?"background:var(--gold-deep)":""}"></i></div>
-   <p class="hint">Confidence ${Math.round((p.confidence||0)*100)}%${(p.confidence||0)<.8?" · rendah, semak betul-betul":""}</p></div>
-   <div class="row" style="margin-top:10px"><button class="btn ok" data-act="approve">${j?"Approve update":"Tambah sebagai job baru"}</button><button class="btn" data-act="dismiss">Abaikan</button></div>`}
-  </div></div>`;
+function vMonitoring(){
+  const s=ST(), runs=[...S.runs].sort((a,b)=>(b.startedAt||0)-(a.startedAt||0));
+  const lr=runs[0], ok=runs.filter(r=>r.status==="succeeded"), added=ok.reduce((a,r)=>a+(r.added||0),0);
+  const per={}; for(const j of S.jobs.filter(j=>j.origin==="auto")){ const o=per[j.sourceId]||(per[j.sourceId]={n:0,last:0,sc:0,ap:0}); o.n++; o.last=Math.max(o.last,j.foundAt||j.createdAt||0); o.sc+=j.score||0; if(j.appliedAt) o.ap++; }
+  const running=lr?.status==="running"&&!runStuck(lr);
+  return head("Monitoring","Kesihatan auto-search: bila jalan, apa jumpa, sumber mana berbaloi.")+
+  `<div class="kpis"><div class="kpi ${s.autoEnabled?"good":""}"><div class="v">${s.autoEnabled?"ON":"OFF"}</div><div class="l">Jadual harian ${new Date(nextRunAt()).toLocaleTimeString("en-MY",{hour:"numeric",minute:"2-digit"})}</div></div><div class="kpi"><div class="v">${runs.length}</div><div class="l">Jumlah run</div></div><div class="kpi info"><div class="v">${runs.length?Math.round(ok.length/runs.filter(r=>r.status!=="running"&&r.status!=="skipped").length*100||0):0}%</div><div class="l">Kadar berjaya</div></div><div class="kpi good"><div class="v">${added}</div><div class="l">Job ditemui auto</div></div></div>
+  <div class="autobar"><div><b><span class="dot ${running?"run":s.autoEnabled?"on":""}"></span>${running?"Tengah jalan sekarang":lr?`Run terakhir ${fmtT(lr.startedAt)} · ${esc(runLabel(lr))}`:"Belum pernah jalan"}</b><p>Claude Routine "Job Hunter auto-search" jalan dalam cloud, cari di web ikut sumber kau, rank, dan tulis terus ke sini. Run manual guna connector Claude Code Remote.</p></div><div class="row"><label class="switch"><input type="checkbox" id="autoEnabled" ${s.autoEnabled?"checked":""}> Harian</label><button class="btn pri" data-act="run" ${S.busy.run||running?"disabled":""}>${S.busy.run?"Memulakan…":"Run sekarang"}</button></div></div>
+  <div class="panel" style="margin-bottom:16px"><h2>Sejarah run</h2><div class="tblwrap"><table><thead><tr><th>Mula</th><th>Jenis</th><th>Status</th><th class="num">Dilihat</th><th class="num">Ditambah</th><th class="num">Top</th><th>Nota</th></tr></thead><tbody>${runs.slice(0,20).map(r=>`<tr><td style="white-space:nowrap">${fmtT(r.startedAt)}</td><td>${r.trigger==="manual"?"Manual":"Jadual"}</td><td><span class="chip ${r.status==="succeeded"?"good":r.status==="failed"||runStuck(r)?"bad":r.status==="running"?"due":""}">${esc(runLabel(r))}</span></td><td class="num">${r.found??"–"}</td><td class="num">${r.added??"–"}</td><td class="num">${r.topScore??"–"}</td><td style="min-width:200px">${esc(r.error||r.note||"")}</td></tr>`).join("")||`<tr><td colspan="7"><div class="empty">Belum ada run. Tekan "Run sekarang".</div></td></tr>`}</tbody></table></div></div>
+  <div class="panel"><h2>Kesihatan sumber</h2><div class="tblwrap"><table><thead><tr><th>Sumber</th><th>Status</th><th class="num">Job auto</th><th class="num">Purata fit</th><th class="num">Applied</th><th>Terakhir jumpa</th></tr></thead><tbody>${SOURCES.filter(x=>!x.linkOnly).map(x=>{const o=per[x.id]; const on=s.sources.includes(x.id); return `<tr><td>${esc(x.name)}<br><span class="hint" style="margin:0">${esc(x.kind)}</span></td><td><span class="chip ${on?"good":""}">${on?"aktif":"off"}</span></td><td class="num">${o?.n||0}</td><td class="num">${o?Math.round(o.sc/o.n):"–"}</td><td class="num">${o?.ap||0}</td><td>${o?ago(o.last):on&&ok.length?'<span class="chip due">tiada hasil lagi</span>':"–"}</td></tr>`;}).join("")}</tbody></table></div></div>`;
 }
-function viewProfile(){
-  const p=S.profile||{};
-  const v=k=>esc(S.drafts["p_"+k]??p[k]??"");
-  return head("Profile & CV","Semua ranking, resume dan cover letter guna maklumat ni. Isi dengan fakta sebenar je.",`<button class="btn pri" data-act="saveprofile">Simpan profile</button>`)+
-  `<div class="panel"><div class="form">
+function vQuest(){
+  const qs=quests(), xp=qs.filter(q=>q.done).reduce((a,q)=>a+q.xp,0), tot=qs.reduce((a,q)=>a+q.xp,0), lvl=Math.floor(xp/100)+1;
+  return head("Setup quest","Siapkan setup supaya AI kerja betul untuk kau. Setiap langkah dapat XP.")+
+  `<div class="panel" style="margin-bottom:16px"><div class="xp"><div class="lvlb">L${lvl}</div><div style="flex:1;min-width:0"><b>${xp} / ${tot} XP</b> · ${qs.filter(q=>q.done).length} dari ${qs.length} quest siap<div class="meter"><i style="width:${Math.round(xp/tot*100)}%"></i></div></div></div></div>
+  <div class="list">${qs.map(q=>`<div class="quest ${q.done?"done":""}"><span class="ck" aria-hidden="true">✓</span><span style="min-width:0"><b>${esc(q.t)}</b><small>${esc(q.d)}</small></span><span class="row" style="gap:8px"><span class="xpv">+${q.xp} XP</span>${q.done?'<span class="chip good">Siap</span>':`<button class="btn sm pri" data-act="view" data-v="${q.go}">Buat</button>`}</span></div>`).join("")}</div>`;
+}
+function vKnowledge(){
+  const st=[...S.stories].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)), d=k=>esc(S.drafts["k_"+k]||"");
+  return head("Knowledge bank","Cerita pencapaian sebenar kau. AI guna ni untuk tailor resume, cover letter dan jawapan interview.",`<button class="btn" data-act="extract" ${S.busy.stories?"disabled":""}>${S.busy.stories?"AI tengah extract…":"Extract dari CV"}</button>`)+
+  `<div class="grid2"><div class="list">${st.length?st.map(s=>`<div class="panel"><h2>${esc(s.title)} ${s.fromAI?'<span class="chip info">AI draf</span>':""}<span class="sp"><button class="xs" data-act="delstory" data-id="${s.id}" aria-label="Padam cerita">${S.confirm===s.id?"?":"×"}</button></span></h2><dl class="kv"><dt>Situasi</dt><dd>${esc(s.situation)}</dd><dt>Tindakan</dt><dd>${esc(s.action)}</dd><dt>Hasil</dt><dd>${esc(s.result)}</dd>${s.metric?`<dt>Angka</dt><dd><b>${esc(s.metric)}</b></dd>`:""}</dl><div class="row" style="gap:6px">${(s.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div></div>`).join(""):`<div class="empty">Belum ada cerita. Tekan "Extract dari CV" atau tulis sendiri di sebelah.</div>`}</div>
+  <div class="panel"><h2>Tambah cerita (STAR)</h2><div class="form">
+   <label class="f full" for="k_title">Tajuk<input class="input" id="k_title" data-draft="k_title" value="${d("title")}" placeholder="cth: Turunkan CPL kempen takaful"></label>
+   <label class="f full" for="k_situation">Situasi<textarea id="k_situation" data-draft="k_situation" rows="2">${d("situation")}</textarea></label>
+   <label class="f full" for="k_action">Apa kau buat<textarea id="k_action" data-draft="k_action" rows="3">${d("action")}</textarea></label>
+   <label class="f full" for="k_result">Hasil<textarea id="k_result" data-draft="k_result" rows="2">${d("result")}</textarea></label>
+   <label class="f" for="k_metric">Angka<input class="input" id="k_metric" data-draft="k_metric" value="${d("metric")}" placeholder="cth: CPL RM42 → RM18"></label>
+   <label class="f" for="k_tags">Tag (koma)<input class="input" id="k_tags" data-draft="k_tags" value="${d("tags")}" placeholder="Meta Ads, funnel"></label>
+  </div><div class="row" style="margin-top:12px"><button class="btn pri" data-act="addstory">Simpan cerita</button></div></div></div>`;
+}
+function vSettings(){
+  const p=S.profile||{}, s=ST(), v=k=>esc(S.drafts["p_"+k]??p[k]??"");
+  return head("Settings & profile","Semua ranking, auto-search dan tulisan AI guna maklumat ni. Isi dengan fakta sebenar je.",`<button class="btn pri" data-act="saveprofile">Simpan profile</button>`)+
+  `<div class="grid2"><div class="panel"><h2>Profile & CV</h2><div class="form">
    <label class="f" for="p_name">Nama<input class="input" id="p_name" data-draft="p_name" value="${v("name")}"></label>
    <label class="f" for="p_headline">Headline<input class="input" id="p_headline" data-draft="p_headline" value="${v("headline")}"></label>
-   <label class="f full" for="p_targetRoles">Target roles (asingkan dengan koma)<input class="input" id="p_targetRoles" data-draft="p_targetRoles" value="${v("targetRoles")}"></label>
+   <label class="f full" for="p_targetRoles">Target roles (koma)<input class="input" id="p_targetRoles" data-draft="p_targetRoles" value="${v("targetRoles")}"></label>
    <label class="f" for="p_locations">Lokasi<input class="input" id="p_locations" data-draft="p_locations" value="${v("locations")}"></label>
    <label class="f" for="p_salaryFloor">Gaji minimum (RM/bulan)<input class="input" id="p_salaryFloor" data-draft="p_salaryFloor" value="${v("salaryFloor")}" placeholder="cth: 8000"></label>
-   <label class="f full" for="p_avoid">Elak (industri, jenis role, syarikat)<input class="input" id="p_avoid" data-draft="p_avoid" value="${v("avoid")}" placeholder="cth: MLM, commission-only, agency junior"></label>
-   <label class="f full" for="p_resume">CV / resume penuh (paste teks)<textarea id="p_resume" data-draft="p_resume" rows="16">${v("resume")}</textarea></label>
-  </div></div>`;
+   <label class="f full" for="p_avoid">Elak<input class="input" id="p_avoid" data-draft="p_avoid" value="${v("avoid")}" placeholder="cth: MLM, commission-only, junior"></label>
+   <label class="f full" for="p_resume">CV penuh (paste teks)<textarea id="p_resume" data-draft="p_resume" rows="16">${v("resume")}</textarea></label></div></div>
+  <div class="stack"><div class="panel"><h2>Alert & follow-up</h2><div class="form">
+   <label class="f" for="s_alertScore">Alert bila fit ≥<input class="input" type="number" min="40" max="100" id="s_alertScore" value="${s.alertScore}"></label>
+   <label class="f" for="s_followDays">Follow-up lepas (hari)<input class="input" type="number" min="2" max="30" id="s_followDays" value="${s.followDays}"></label>
+   <label class="f" for="s_ghostDays">Anggap ghosted lepas (hari)<input class="input" type="number" min="7" max="90" id="s_ghostDays" value="${s.ghostDays}"></label>
+   <label class="f" for="s_maxPerRun">Max job setiap auto-search<input class="input" type="number" min="3" max="40" id="s_maxPerRun" value="${s.maxPerRun}"></label></div>
+   <div class="row" style="margin-top:12px"><button class="btn" data-act="saveprefs">Simpan</button></div></div>
+   <div class="panel"><h2>Data</h2><div class="list"><div class="item"><span><span class="t">Job contoh</span><br><span class="s">${S.jobs.filter(j=>j.example).length} dalam sistem</span></span><button class="btn sm" data-act="clearex" ${S.jobs.some(j=>j.example)?"":"disabled"}>Padam</button></div><div class="item"><span><span class="t">Alert yang ditutup</span><br><span class="s">${Object.keys(S.ui?.dismissed||{}).length} disembunyikan</span></span><button class="btn sm" data-act="resetalerts">Tunjuk semula</button></div></div></div></div></div>`;
 }
+const VIEWS={overview:vOverview,today:vToday,discovery:vDiscovery,tailor:vTailor,approvals:vApprovals,tracker:vTracker,monitoring:vMonitoring,quest:vQuest,knowledge:vKnowledge,settings:vSettings};
+
 function renderDrawer(){
-  const root=$("#drawer-root");
-  const j=S.jobs.find(x=>x.id===S.open);
+  const root=$("#drawer-root"), j=S.jobs.find(x=>x.id===S.open);
   if(!j){ root.innerHTML=""; return; }
   const tabs=[["fit","Fit"],["resume","Resume"],["cover","Cover letter"],["prep","Interview prep"],["notes","Notes & log"]];
   let body="";
   if(S.tab==="fit"){
-    body=`<dl class="kv"><dt>Status</dt><dd><select id="d_status" aria-label="Status" style="width:auto">${STATUSES.map(s=>`<option value="${s.k}" ${j.status===s.k?"selected":""}>${s.l}</option>`).join("")}</select></dd>
+    const evv=j.eventAt?new Date(j.eventAt-new Date(j.eventAt).getTimezoneOffset()*6e4).toISOString().slice(0,16):"";
+    body=`<dl class="kv"><dt>Status</dt><dd><select id="d_status" class="inl" aria-label="Status">${STATUSES.map(s=>`<option value="${s.k}" ${j.status===s.k?"selected":""}>${s.l}</option>`).join("")}</select></dd>
      <dt>Fit score</dt><dd><span class="score ${scoreCls(j.score)}" style="text-align:left">${j.score??"–"}/100</span> <span class="verdict">${esc(j.verdict||"")}</span><div class="meter"><i style="width:${j.score||0}%"></i></div></dd>
-     <dt>Lokasi</dt><dd>${esc(j.location||"–")}</dd><dt>Gaji</dt><dd>${esc(j.salary||"tak dinyatakan")}</dd>
-     <dt>Source</dt><dd>${esc(j.source||"–")}${j.url?` · <a href="${esc(j.url)}" target="_blank" rel="noopener">buka iklan ↗</a>`:""}</dd>
-     ${j.appliedAt?`<dt>Applied</dt><dd>${fmt(j.appliedAt)}${j.followUpAt?` · follow-up ${fmt(j.followUpAt)}`:""}</dd>`:""}</dl>
+     <dt>Lokasi</dt><dd>${esc(j.location||"–")} ${modeChip(j)}</dd><dt>Gaji</dt><dd>${esc(j.salary||"tak dinyatakan")}</dd>
+     <dt>Sumber</dt><dd>${esc(j.source||"–")}${j.origin==="auto"?' <span class="chip info">auto-search</span>':""}${j.url?` · <a href="${esc(j.url)}" target="_blank" rel="noopener">buka iklan ↗</a>`:""}</dd>
+     ${j.postedAt?`<dt>Diiklan</dt><dd>${esc(j.postedAt)}</dd>`:""}
+     ${j.appliedAt?`<dt>Applied</dt><dd>${fmt(j.appliedAt)}${j.followUpAt?` · follow-up ${fmt(j.followUpAt)}`:""}</dd>`:""}
+     <dt><label for="d_event">Interview / tarikh</label></dt><dd><input type="datetime-local" class="input" id="d_event" value="${evv}" style="width:auto"></dd></dl>
      <div class="sec"><h3>Kenapa sesuai</h3>${j.reasons?.length?`<ul class="bullets">${j.reasons.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">Belum di-rank.</p>`}</div>
      <div class="sec"><h3>Gap / risiko</h3>${j.gaps?.length?`<ul class="bullets">${j.gaps.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>`:`<p class="hint">Tiada direkod.</p>`}</div>
-     ${j.keywords?.length?`<div class="sec"><h3>Keyword wajib</h3><div class="row">${j.keywords.map(k=>`<span class="chip">${esc(k)}</span>`).join("")}</div></div>`:""}
-     <div class="row">${j.status==="discovered"||j.status==="shortlisted"?`<button class="btn ok" data-act="status" data-id="${j.id}" data-s="applied">Tanda dah apply</button>`:""}<button class="btn" data-act="rerank" data-id="${j.id}" ${S.busy["rank:"+j.id]?"disabled":""}>${S.busy["rank:"+j.id]?"Ranking…":"Rank semula"}</button></div>`;
+     ${j.keywords?.length?`<div class="sec"><h3>Keyword wajib</h3><div class="row" style="gap:6px">${j.keywords.map(k=>`<span class="chip">${esc(k)}</span>`).join("")}</div></div>`:""}
+     <div class="row">${["discovered","shortlisted"].includes(j.status)?`<button class="btn ok" data-act="status" data-id="${j.id}" data-s="applied">Tanda dah apply</button>`:""}<button class="btn" data-act="rerank" data-id="${j.id}" ${S.busy["rank:"+j.id]?"disabled":""}>${S.busy["rank:"+j.id]?"Ranking…":"Rank semula"}</button></div>`;
   } else if(STREAMS[S.tab]){
-    const kind=S.tab, cfg=STREAMS[kind], key=j.id+":"+kind, live=S.stream[key], saved=j[cfg.field], busy=S.busy[key];
-    const text=live??saved;
+    const kind=S.tab, cfg=STREAMS[kind], key=j.id+":"+kind, saved=j[cfg.field], busy=S.busy[key], text=S.stream[key]??saved;
     body=`<div class="row" style="margin-bottom:12px"><button class="btn pri" data-act="gen" data-k="${kind}" ${busy?"disabled":""}>${busy?"AI tengah tulis…":saved?"Jana semula":"Jana "+cfg.label.toLowerCase()}</button>${busy?`<button class="btn" data-act="stop">Stop</button>`:""}${saved&&!busy?`<button class="btn" data-act="copy" data-k="${kind}">Copy</button>${downloads?`<button class="btn" data-act="dl" data-k="${kind}">Simpan .txt</button>`:""}`:""}</div>
-    <div class="out ${text?"":"wait"}" id="out-${kind}">${text?md(text):busy?"Thinking… (biasanya 10–40 saat)":kind==="prep"?"Jana prep sheet: soalan dijangka, pitch 60 saat, cara jawab gap, soalan untuk interviewer.":"Belum dijana. AI guna CV dalam Profile + JD job ni. Semua angka yang tiada akan jadi [ISI: …] supaya kau isi sendiri."}</div>
-    ${!j.jd?`<p class="hint">Tip: job ni tak ada JD penuh. Paste dalam tab Notes & log supaya hasil lebih tepat.</p>`:""}`;
+    <div class="out ${text?"":"wait"}" id="out-${kind}">${text?md(text):busy?"Thinking… (biasanya 10–40 saat)":"Belum dijana. AI guna CV, Knowledge bank dan JD job ni. Angka yang tiada akan jadi [ISI: …] supaya kau isi sendiri."}</div>
+    ${!j.jd?`<p class="hint">Job ni tak ada JD penuh. Paste dalam tab Notes & log supaya hasil lebih tepat.</p>`:""}`;
   } else {
-    body=`<div class="sec"><h3>Notes</h3><textarea id="d_notes" data-draft="notes:${j.id}" rows="5" placeholder="Nama recruiter, gaji yang dibincang, tarikh interview…">${esc(S.drafts["notes:"+j.id]??j.notes??"")}</textarea></div>
+    body=`<div class="sec"><h3>Notes</h3><textarea id="d_notes" data-draft="notes:${j.id}" rows="5" placeholder="Nama recruiter, gaji dibincang…">${esc(S.drafts["notes:"+j.id]??j.notes??"")}</textarea></div>
     <div class="sec"><h3>Job description</h3><textarea id="d_jd" data-draft="jd:${j.id}" rows="7" placeholder="Paste JD penuh">${esc(S.drafts["jd:"+j.id]??j.jd??"")}</textarea>
-    <div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="savenotes" data-id="${j.id}">Simpan</button><button class="btn sm" data-act="delete" data-id="${j.id}" style="margin-left:auto;color:var(--red)">${S.confirmDel===j.id?"Tekan sekali lagi untuk padam":"Padam job"}</button></div></div>
+    <div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="savenotes" data-id="${j.id}">Simpan</button><button class="btn sm" data-act="delete" data-id="${j.id}" style="margin-left:auto;color:var(--red)">${S.confirm===j.id?"Tekan sekali lagi untuk padam":"Padam job"}</button></div></div>
     <div class="sec"><h3>Log aktiviti</h3><ul class="timeline">${[...(j.activity||[])].reverse().map(a=>`<li><time>${fmt(a.t)}</time><span>${esc(a.text)}</span></li>`).join("")||"<li>Tiada lagi.</li>"}</ul></div>`;
   }
   root.innerHTML=`<div class="scrim" data-act="close"></div><aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(j.title)}">
-   <div class="dhead"><div><h2>${esc(j.title)}</h2><p>${esc(j.company)}${j.location?" · "+esc(j.location):""} ${j.example?'<span class="chip ex">contoh</span>':""}</p></div><button class="x" data-act="close" aria-label="Tutup">×</button></div>
+   <div class="dhead"><div><h2>${esc(j.title)}</h2><p>${esc(j.company)}${j.location?" · "+esc(j.location):""} ${newChip(j)}${exChip(j)}</p></div><button class="x" data-act="close" aria-label="Tutup">×</button></div>
    <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button role="tab" data-act="tab" data-t="${k}" aria-selected="${S.tab===k}">${l}</button>`).join("")}</div>
    <div class="dbody">${body}</div></aside>`;
 }
+// ⌘K palette
+function palItems(){
+  const q=(S.pal?.q||"").toLowerCase();
+  const pages=[...NAV1,...NAV2].map(([k,l])=>({type:"page",k,l,sub:"Page"}));
+  const jobs=S.jobs.map(j=>({type:"job",k:j.id,l:j.title,sub:`${j.company} · ${SL[j.status].l}`}));
+  const acts=[{type:"act",k:"run",l:"Run auto-search sekarang",sub:"Aksi"},{type:"act",k:"plan",l:"Jana search plan",sub:"Aksi"}];
+  return [...pages,...acts,...jobs].filter(x=>!q||(x.l+" "+x.sub).toLowerCase().includes(q)).slice(0,12);
+}
+function renderPal(){
+  const r=$("#pal-root");
+  if(!S.pal){ r.innerHTML=""; return; }
+  const items=palItems(); S.pal.i=Math.min(S.pal.i,Math.max(0,items.length-1));
+  const listHtml=items.map((x,i)=>`<li><button data-act="palpick" data-i="${i}" aria-selected="${i===S.pal.i}"><span>${esc(x.l)}</span><small>${esc(x.sub)}</small></button></li>`).join("")||`<li class="hint" style="padding:12px">Tiada hasil.</li>`;
+  if(!r.firstChild){
+    r.innerHTML=`<div class="pal-scrim" data-act="palclose"><div class="pal" role="dialog" aria-label="Cari"><input id="palq" placeholder="Cari page, job atau aksi…" autocomplete="off" aria-label="Cari"><ul id="pallist"></ul></div></div>`;
+    $("#palq").value=S.pal.q; $("#palq").focus();
+  }
+  $("#pallist").innerHTML=listHtml;
+}
+function palPick(i){
+  const x=palItems()[i]; S.pal=null; renderPal(); if(!x) return;
+  if(x.type==="page") go(x.k); else if(x.type==="job") openJob(x.k); else if(x.k==="run") runNow(); else { go("discovery"); makePlan(); }
+}
+
 function render(force){
   renderNav();
   const a=document.activeElement, main=$("#main");
-  const typing=a&&a.matches&&a.matches("input,textarea")&&(main.contains(a)||$("#drawer-root").contains(a));
+  const typing=a&&a.matches&&a.matches("input:not([type=checkbox]),textarea")&&(main.contains(a)||$("#drawer-root").contains(a));
   if(force||!typing){
-    const scroll=main.querySelector(".boardwrap")?.scrollLeft;
-    main.innerHTML={today:viewToday,discovery:viewDiscovery,tracker:viewTracker,inbox:viewInbox,profile:viewProfile}[S.view]();
-    if(scroll) { const bw=main.querySelector(".boardwrap"); if(bw) bw.scrollLeft=scroll; }
-    const dscroll=$("#drawer-root .dbody")?.scrollTop;
+    const bw=main.querySelector(".boardwrap")?.scrollLeft, ds=$("#drawer-root .dbody")?.scrollTop;
+    main.innerHTML=VIEWS[S.view]();
+    if(bw){ const b=main.querySelector(".boardwrap"); if(b) b.scrollLeft=bw; }
     renderDrawer();
-    if(dscroll){ const d=$("#drawer-root .dbody"); if(d) d.scrollTop=dscroll; }
+    if(ds){ const d=$("#drawer-root .dbody"); if(d) d.scrollTop=ds; }
   }
+  questCheck();
 }
-function openJob(id,tab){ S.open=id; S.tab=tab||"fit"; S.confirmDel=null; render(); }
+function go(v){
+  if(S.view==="discovery"&&v!=="discovery"&&S.live) markSeen();
+  S.view=v; S.open=null; try{ localStorage.setItem("jh_view",v); }catch{} render(); window.scrollTo(0,0);
+}
+function markSeen(){ const seen={...(S.ui?.seen||{}),discovery:Date.now()}; saveUi({seen}); }
+function openJob(id,tab){ S.open=id; S.tab=tab||"fit"; S.confirm=null; render(); }
 
 // ---------- events ----------
 document.addEventListener("input",e=>{
-  const k=e.target.dataset?.draft; if(!k) return;
-  S.drafts[k]=e.target.value;
-  if(k==="filter"){ S.filter=e.target.value; const pos=e.target.selectionStart; render(true); const f=$("#filter"); if(f){ f.focus(); f.setSelectionRange(pos,pos);} }
-});
-document.addEventListener("change",e=>{
   const t=e.target;
-  if(t.id==="minScore"){ S.minScore=Number(t.value); render(); }
-  if(t.id==="d_status"){ const j=S.jobs.find(x=>x.id===S.open); if(j) setStatus(j,t.value); }
+  if(t.id==="palq"){ S.pal.q=t.value; S.pal.i=0; renderPal(); return; }
+  const k=t.dataset?.draft; if(!k) return;
+  S.drafts[k]=t.value;
+  if(k==="tf_q"){ S.tf.q=t.value; const pos=t.selectionStart; render(true); const f=$("#tf_q"); if(f){ f.focus(); f.setSelectionRange(pos,pos);} }
 });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&S.open){ S.open=null; render(); } });
+document.addEventListener("change",async e=>{
+  const t=e.target, j=S.jobs.find(x=>x.id===S.open);
+  if(t.dataset.src){ const s=ST(); const set=new Set(s.sources); t.checked?set.add(t.dataset.src):set.delete(t.dataset.src); await saveSettings({sources:SOURCES.map(x=>x.id).filter(id=>set.has(id))}); return; }
+  switch(t.id){
+    case "workMode": await saveSettings({workMode:t.value}); toast("Work mode: "+MODES[t.value]); break;
+    case "autoEnabled": await saveSettings({autoEnabled:t.checked}); toast(t.checked?"Auto-search harian aktif":"Auto-search harian off. Run manual masih boleh."); break;
+    case "df_src": S.df.src=t.value; render(); break;
+    case "df_mode": S.df.mode=t.value; render(); break;
+    case "df_min": S.df.min=Number(t.value); render(); break;
+    case "tf_loc": S.tf.loc=t.value; render(); break;
+    case "tf_min": S.tf.min=Number(t.value); render(); break;
+    case "d_status": if(j) setStatus(j,t.value); break;
+    case "d_event": if(j){ const v=t.value?new Date(t.value).getTime():null; await patchJob(j.id,{eventAt:v,activity:logOf(j,v?"Tarikh ditetapkan: "+fmtT(v):"Tarikh dibuang")}); toast(v?"Tarikh disimpan":"Tarikh dibuang"); } break;
+  }
+});
+document.addEventListener("keydown",e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){ e.preventDefault(); S.pal=S.pal?null:{q:"",i:0}; renderPal(); return; }
+  if(S.pal){
+    if(e.key==="Escape"){ S.pal=null; renderPal(); }
+    else if(e.key==="ArrowDown"){ e.preventDefault(); S.pal.i++; renderPal(); }
+    else if(e.key==="ArrowUp"){ e.preventDefault(); S.pal.i=Math.max(0,S.pal.i-1); renderPal(); }
+    else if(e.key==="Enter"){ e.preventDefault(); palPick(S.pal.i); }
+    return;
+  }
+  if(e.key==="Escape"&&S.open){ S.open=null; render(); }
+});
 document.addEventListener("click",async e=>{
   const el=e.target.closest("[data-act]"); if(!el) return;
-  const act=el.dataset.act, j=S.jobs.find(x=>x.id===(el.dataset.id||S.open));
+  const act=el.dataset.act;
+  if(act==="palclose"&&e.target!==el) return;
+  const j=S.jobs.find(x=>x.id===(el.dataset.id||S.open));
   switch(act){
-    case "view": S.view=el.dataset.v; S.open=null; render(); window.scrollTo(0,0); break;
-    case "open": openJob(el.dataset.id); break;
+    case "view": go(el.dataset.v); break;
+    case "open": openJob(el.dataset.id,el.dataset.tab); break;
     case "close": S.open=null; render(); break;
-    case "tab": S.tab=el.dataset.t; S.confirmDel=null; render(); break;
+    case "tab": S.tab=el.dataset.t; S.confirm=null; render(); break;
+    case "pal": S.pal={q:"",i:0}; renderPal(); break;
+    case "palclose": S.pal=null; renderPal(); break;
+    case "palpick": palPick(Number(el.dataset.i)); break;
+    case "newsearch": go("discovery"); break;
     case "status": if(j){ await setStatus(j,el.dataset.s); toast(`${j.company||j.title}: ${SL[el.dataset.s].l}`);} break;
-    case "followed": if(j){ await patchJob(j.id,{followUpAt:Date.now()+7*DAY,activity:logOf(j,"Follow-up dihantar")}); toast("Follow-up seterusnya dalam 7 hari"); } break;
+    case "followed": if(j){ await patchJob(j.id,{followUpAt:Date.now()+ST().followDays*DAY,activity:logOf(j,"Follow-up dihantar")}); toast(`Follow-up seterusnya dalam ${ST().followDays} hari`); } break;
+    case "alert": doAlert(el.dataset.id,el.dataset.scope); break;
+    case "dismiss-alert": await saveUi({dismissed:{...(S.ui?.dismissed||{}),[el.dataset.id]:Date.now()}}); break;
+    case "resetalerts": await saveUi({dismissed:{}}); toast("Semua alert ditunjuk semula"); break;
+    case "run": runNow(); break;
     case "plan": makePlan(); break;
+    case "savekw": await saveSettings({extraKeywords:(S.drafts.extraKeywords??ST().extraKeywords).trim()}); delete S.drafts.extraKeywords; toast("Keyword disimpan"); break;
+    case "dfshow": S.df.show=el.dataset.v; render(); break;
+    case "tmode": S.trackerMode=el.dataset.v; render(); break;
     case "import": importJD(); break;
     case "rerank": if(j) rerank(j); break;
     case "gen": if(j) runStream(j,el.dataset.k); break;
     case "stop": ctl?.abort(); break;
     case "email": readEmail(); break;
-    case "approve": approveProposal(); break;
-    case "dismiss": S.proposal=null; render(); break;
+    case "approve": { const a=S.approvals.find(x=>x.id===el.dataset.id); if(a) approve(a); break; }
+    case "reject-appr": await upd("approvals",el.dataset.id,{state:"dismissed",decidedAt:Date.now()}); break;
     case "copy": { const text=j?.[STREAMS[el.dataset.k].field]||""; try{ await navigator.clipboard.writeText(text); toast("Copied"); }catch{ const o=$("#out-"+el.dataset.k); const r=document.createRange(); r.selectNodeContents(o); const s=getSelection(); s.removeAllRanges(); s.addRange(r); toast("Teks dipilih, tekan Ctrl/Cmd+C"); } break; }
-    case "dl": if(j&&downloads){ const k=el.dataset.k; const name=`${k}-${(j.company||"job").replace(/[^a-z0-9]+/gi,"-")}.txt`; try{ await downloads.save({filename:name,data:j[STREAMS[k].field]||""}); toast("Disimpan"); }catch(err){ if(err?.code!=="cancelled") toast("Tak dapat simpan fail."); } } break;
+    case "dl": if(j&&downloads){ const k=el.dataset.k; try{ await downloads.save({filename:`${k}-${(j.company||"job").replace(/[^a-z0-9]+/gi,"-")}.txt`,data:j[STREAMS[k].field]||""}); toast("Disimpan"); }catch(err){ if(err?.code!=="cancelled") toast("Tak dapat simpan fail."); } } break;
     case "savenotes": if(j){ const n=S.drafts["notes:"+j.id]??j.notes??"", jd=S.drafts["jd:"+j.id]??j.jd??""; await patchJob(j.id,{notes:n,jd}); delete S.drafts["notes:"+j.id]; delete S.drafts["jd:"+j.id]; toast("Disimpan"); } break;
-    case "delete": if(j){ if(S.confirmDel===j.id){ S.open=null; S.confirmDel=null; await removeJob(j.id); toast("Job dipadam"); } else { S.confirmDel=j.id; render(); } } break;
-    case "saveprofile": { const p={...(S.profile||{})}; for(const k of ["name","headline","targetRoles","locations","salaryFloor","avoid","resume"]){ if(S.drafts["p_"+k]!=null) p[k]=S.drafts["p_"+k]; delete S.drafts["p_"+k]; } p.updatedAt=Date.now(); await saveProfile(p); toast("Profile disimpan"); break; }
+    case "delete": if(j){ if(S.confirm===j.id){ S.open=null; S.confirm=null; await del("jobs",j.id); toast("Job dipadam"); } else { S.confirm=j.id; render(); } } break;
+    case "clearex": { for(const x of S.jobs.filter(x=>x.example)) await del("jobs",x.id); toast("Job contoh dipadam"); break; }
+    case "extract": extractStories(); break;
+    case "addstory": { const d=k=>(S.drafts["k_"+k]||"").trim(); if(!d("title")){ toast("Isi tajuk dulu."); break; } await put("stories",newId("stories"),{title:d("title"),situation:d("situation"),action:d("action"),result:d("result"),metric:d("metric")||null,tags:d("tags").split(",").map(x=>x.trim()).filter(Boolean),createdAt:Date.now()}); for(const k of ["title","situation","action","result","metric","tags"]) delete S.drafts["k_"+k]; toast("Cerita disimpan"); render(true); break; }
+    case "delstory": if(S.confirm===el.dataset.id){ S.confirm=null; await del("stories",el.dataset.id); toast("Cerita dipadam"); } else { S.confirm=el.dataset.id; render(); toast("Tekan × sekali lagi untuk padam"); } break;
+    case "saveprofile": { const p={...(S.profile||{})}; for(const k of ["name","headline","targetRoles","locations","salaryFloor","avoid","resume"]){ if(S.drafts["p_"+k]!=null) p[k]=S.drafts["p_"+k]; delete S.drafts["p_"+k]; } p.updatedAt=Date.now(); await putDoc("main",p); toast("Profile disimpan"); break; }
+    case "saveprefs": { const n=id=>Number($("#"+id)?.value)||undefined; const c=(v,a,b,d)=>v==null?d:Math.min(b,Math.max(a,v)); const s=ST(); await saveSettings({alertScore:c(n("s_alertScore"),40,100,s.alertScore),followDays:c(n("s_followDays"),2,30,s.followDays),ghostDays:c(n("s_ghostDays"),7,90,s.ghostDays),maxPerRun:c(n("s_maxPerRun"),3,40,s.maxPerRun)}); toast("Tetapan disimpan"); break; }
   }
 });
+// hover tooltip for charts and meters
+document.addEventListener("pointermove",e=>{ const t=e.target.closest?.("[data-tip]"), tip=$("#tip"); if(!t){ tip.hidden=true; return; } tip.textContent=t.dataset.tip; tip.hidden=false; tip.style.left=Math.min(e.clientX+12,innerWidth-250)+"px"; tip.style.top=(e.clientY+14)+"px"; });
 // drag & drop on the board
 let dragId=null;
 document.addEventListener("dragstart",e=>{ const c=e.target.closest?.(".card"); if(!c) return; dragId=c.dataset.id; c.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{ e.dataTransfer.setData("text/plain",dragId); }catch{} });
 document.addEventListener("dragend",e=>{ e.target.closest?.(".card")?.classList.remove("dragging"); document.querySelectorAll(".col.over").forEach(c=>c.classList.remove("over")); });
 document.addEventListener("dragover",e=>{ const col=e.target.closest?.("[data-drop]"); if(!col||!dragId) return; e.preventDefault(); document.querySelectorAll(".col.over").forEach(c=>c!==col&&c.classList.remove("over")); col.classList.add("over"); });
 document.addEventListener("drop",async e=>{ const col=e.target.closest?.("[data-drop]"); if(!col||!dragId) return; e.preventDefault(); const j=S.jobs.find(x=>x.id===dragId); dragId=null; col.classList.remove("over"); if(j&&j.status!==col.dataset.drop){ await setStatus(j,col.dataset.drop); toast(`${j.company||j.title}: ${SL[col.dataset.drop].l}`); } });
+// refresh relative times + stuck-run detection
+setInterval(()=>render(),60e3);
 
 // ---------- boot ----------
-function useDemo(){ if(S.ready) return; S.ready=true; S.profile={...DEMO_PROFILE}; S.jobs=DEMO_JOBS.map(j=>({...j})); render(); }
+try{ const v=localStorage.getItem("jh_view"); if(v&&VIEWS[v]) S.view=v; }catch{}
+function useDemo(){ if(S.ready) return; S.ready=true; S.profile={...DEMO.profile}; S.settings={...DEFAULT_SETTINGS}; S.ui={dismissed:{},seen:{}}; S.prevSeen=now0-DAY; S.jobs=DEMO.jobs.map(j=>({...j})); render(); }
 render();
 const use=window.claude?.use;
 if(!use){ useDemo(); }
 else {
   use("sample").then(s=>{ sample=s; render(); }).catch(()=>{});
   use("downloads").then(d=>{ downloads=d; }).catch(()=>{});
+  use("mcp").then(m=>{ mcp=m; }).catch(()=>{});
   use("db").then(d=>{
     if(!d){ useDemo(); return; }
     db=d; S.live=true; S.ready=true;
-    db.doc("profile/main").onSnapshot(s=>{ S.profile=s.exists?s.data():null; render(); },()=>{});
-    db.doc("profile/plan").onSnapshot(s=>{ if(s.exists&&!S.plan) { S.plan=s.data().items; render(); } },()=>{});
-    db.collection("jobs").onSnapshot(q=>{ S.jobs=q.docs.map(d=>({id:d.id,...d.data()})); if(S.open&&!S.jobs.some(j=>j.id===S.open)) S.open=null; render(); },()=>{ toast("Tak dapat baca data."); });
+    const docSub=(key,prop,after)=>db.doc("profile/"+key).onSnapshot(s=>{ S[prop]=s.exists?s.data():null; after&&after(); render(); },()=>{});
+    docSub("main","profile"); docSub("settings","settings"); docSub("plan","plan");
+    docSub("ui","ui",()=>{ S.uiLoaded=true; if(S.prevSeen==null){ S.prevSeen=S.ui?.seen?.discovery??0; } });
+    const colSub=c=>db.collection(c).onSnapshot(q=>{ S[c]=q.docs.map(d=>({id:d.id,...d.data()})); S.loaded.add(c); if(c==="jobs"&&S.open&&!S.jobs.some(j=>j.id===S.open)) S.open=null; render(); },()=>toast("Tak dapat baca "+c+"."));
+    ["jobs","approvals","runs","stories"].forEach(colSub);
   }).catch(useDemo);
 }
 })();
